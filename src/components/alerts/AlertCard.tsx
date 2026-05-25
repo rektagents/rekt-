@@ -16,39 +16,37 @@ export function AlertCard({ alert, onToggle, onRemove }: AlertCardProps) {
   const { currency } = useCurrency();
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-      <div className="flex items-center gap-3 mb-3">
+    <div className="p-5">
+      <div className="flex items-center gap-3 mb-4">
         <Link href={`/coins/${alert.coinId}`} className="flex items-center gap-3">
           <Image
             src={alert.coinImage}
             alt={alert.coinName}
-            width={32}
-            height={32}
+            width={24}
+            height={24}
             className="rounded-full"
           />
           <div>
-            <div className="font-medium text-white">{alert.coinName}</div>
-            <div className="text-sm text-gray-400 uppercase">{alert.coinSymbol}</div>
+            <div className="text-sm font-medium text-white">{alert.coinName}</div>
+            <div className="text-[10px] text-white/30 uppercase font-mono">{alert.coinSymbol}</div>
           </div>
         </Link>
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => onToggle(alert.id)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              alert.enabled ? 'bg-blue-600' : 'bg-gray-700'
+            className={`px-2 py-1 text-[10px] font-mono uppercase tracking-widest border transition-colors ${
+              alert.enabled
+                ? 'border-green-500/20 text-green-400'
+                : 'border-white/10 text-white/20'
             }`}
           >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                alert.enabled ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
+            {alert.enabled ? 'on' : 'off'}
           </button>
           <button
             onClick={() => onRemove(alert.id)}
-            className="text-gray-400 hover:text-red-400 transition-colors"
+            className="text-white/20 hover:text-red-400 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -57,24 +55,28 @@ export function AlertCard({ alert, onToggle, onRemove }: AlertCardProps) {
 
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-sm text-gray-400">
-            {alert.condition === 'above' ? 'Price goes above' : 'Price goes below'}
-          </div>
-          <div className="text-lg font-semibold text-white">
+          <p className="text-[10px] text-white/30 font-mono uppercase tracking-widest mb-1">
+            {alert.condition === 'above' ? 'above' : 'below'}
+          </p>
+          <p className="text-lg font-bold text-white font-mono tabular-nums">
             {formatCurrency(alert.targetPrice, currency)}
-          </div>
+          </p>
         </div>
         <div className="text-right">
-          <div className="text-sm text-gray-400">Current Price</div>
-          <div className="text-lg font-semibold text-white">
+          <p className="text-[10px] text-white/30 font-mono uppercase tracking-widest mb-1">
+            current
+          </p>
+          <p className="text-sm text-white/50 font-mono tabular-nums">
             {formatCurrency(alert.currentPrice, currency)}
-          </div>
+          </p>
         </div>
       </div>
 
       {alert.triggered && (
-        <div className="mt-3 px-3 py-1.5 bg-green-900/30 border border-green-800 rounded-lg text-green-400 text-sm text-center">
-          Triggered
+        <div className="mt-3 pt-3 border-t border-green-500/20 text-center">
+          <span className="text-[10px] text-green-400 font-mono uppercase tracking-widest">
+            triggered
+          </span>
         </div>
       )}
     </div>

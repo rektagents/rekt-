@@ -1,6 +1,6 @@
 'use client';
 
-import { BuilderTool } from '@/types/agent';
+import type { BuilderTool } from '@/types/agent';
 
 const TOOLS: BuilderTool[] = [
   {
@@ -10,7 +10,7 @@ const TOOLS: BuilderTool[] = [
     category: 'sdk',
     documentation: '#',
     github: 'https://github.com',
-    icon: '🛠️',
+    icon: '01',
   },
   {
     id: 'defi-api',
@@ -18,7 +18,7 @@ const TOOLS: BuilderTool[] = [
     description: 'Access DEX data, swap tokens, and interact with DeFi protocols programmatically',
     category: 'api',
     documentation: '#',
-    icon: '📡',
+    icon: '02',
   },
   {
     id: 'agent-framework',
@@ -27,7 +27,7 @@ const TOOLS: BuilderTool[] = [
     category: 'framework',
     documentation: '#',
     github: 'https://github.com',
-    icon: '🏗️',
+    icon: '03',
   },
   {
     id: 'token-deployer',
@@ -35,7 +35,7 @@ const TOOLS: BuilderTool[] = [
     description: 'Deploy your agent token with one click. Built-in liquidity and governance',
     category: 'tool',
     documentation: '#',
-    icon: '🚀',
+    icon: '04',
   },
   {
     id: 'agent-monitor',
@@ -43,7 +43,7 @@ const TOOLS: BuilderTool[] = [
     description: 'Track your agent performance, uptime, and user metrics in real-time',
     category: 'tool',
     documentation: '#',
-    icon: '📊',
+    icon: '05',
   },
   {
     id: 'social-api',
@@ -51,25 +51,25 @@ const TOOLS: BuilderTool[] = [
     description: 'Let your agent post, reply, and engage across Twitter, Discord, and Telegram',
     category: 'api',
     documentation: '#',
-    icon: '💬',
+    icon: '06',
   },
 ];
 
 export function BuilderTools() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px border border-white/10 bg-white/10">
       {TOOLS.map((tool) => (
         <div
           key={tool.id}
-          className="glass rounded-xl p-5 hover:border-gray-600 transition-all cursor-pointer group"
+          className="bg-black p-6 hover:bg-white/[0.03] transition-colors cursor-pointer group"
         >
-          <div className="text-3xl mb-3">{tool.icon}</div>
-          <h3 className="font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors">
+          <p className="text-white/20 text-xs font-mono mb-3">{tool.icon}</p>
+          <h3 className="text-sm font-bold text-white mb-2 tracking-tight">
             {tool.name}
           </h3>
-          <p className="text-sm text-gray-400 mb-4">{tool.description}</p>
+          <p className="text-xs text-white/40 mb-4 leading-relaxed">{tool.description}</p>
           <div className="flex items-center gap-3">
-            <span className="text-xs px-2 py-1 rounded-full bg-gray-800 text-gray-400 capitalize">
+            <span className="text-[10px] px-2 py-0.5 border border-white/10 text-white/30 font-mono uppercase tracking-widest">
               {tool.category}
             </span>
             {tool.github && (
@@ -77,17 +77,17 @@ export function BuilderTools() {
                 href={tool.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-gray-500 hover:text-white transition-colors"
+                className="text-[10px] text-white/20 hover:text-white/50 transition-colors font-mono"
                 onClick={(e) => e.stopPropagation()}
               >
-                GitHub →
+                github →
               </a>
             )}
             <a
               href={tool.documentation}
-              className="text-xs text-blue-400 hover:text-blue-300 transition-colors ml-auto"
+              className="text-[10px] text-white/40 hover:text-white transition-colors font-mono ml-auto"
             >
-              Docs →
+              docs →
             </a>
           </div>
         </div>

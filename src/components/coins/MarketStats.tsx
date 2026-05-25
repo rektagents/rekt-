@@ -3,63 +3,55 @@
 import { useGlobalData } from '@/hooks/useCoins';
 import { useCurrency } from '@/context/CurrencyContext';
 import { formatLargeNumber } from '@/lib/formatters';
-import { Skeleton } from '@/components/ui/Skeleton';
 
 export function MarketStats() {
   const { currency } = useCurrency();
-  const { data, isLoading } = useGlobalData();
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-            <Skeleton className="h-4 w-24 mb-2" />
-            <Skeleton className="h-6 w-32" />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  const { data } = useGlobalData();
 
   if (!data) return null;
 
-  const globalData = data.data;
-  const totalMarketCap = globalData.total_market_cap[currency] || 0;
-  const totalVolume = globalData.total_volume[currency] || 0;
-  const btcDominance = globalData.market_cap_percentage?.btc || 0;
-  const activeCryptos = globalData.active_cryptocurrencies;
-
-  const stats = [
-    {
-      label: 'Total Market Cap',
-      value: formatLargeNumber(totalMarketCap),
-    },
-    {
-      label: '24h Volume',
-      value: formatLargeNumber(totalVolume),
-    },
-    {
-      label: 'BTC Dominance',
-      value: `${btcDominance.toFixed(1)}%`,
-    },
-    {
-      label: 'Active Coins',
-      value: activeCryptos.toLocaleString(),
-    },
-  ];
+  const d = data.data;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="bg-gray-900 rounded-xl p-4 border border-gray-800"
-        >
-          <div className="text-sm text-gray-400 mb-1">{stat.label}</div>
-          <div className="text-lg font-semibold text-white">{stat.value}</div>
+    <section className="border-b border-white/10 bg-white/[0.015]">
+      <div className="max-w-6xl mx-auto px-6 py-6">
+        <div className="flex flex-wrap items-center gap-x-12 gap-y-4">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+            </span>
+            <span className="text-white/30 text-xs font-mono">market live</span>
+          </div>
+
+          <div className="flex flex-wrap gap-x-10 gap-y-2">
+            <div className="flex items-baseline gap-2">
+              <span className="text-white font-black text-2xl font-mono tabular-nums">
+                {formatLargeNumber(d.total_market_cap[currency] || 0)}
+              </span>
+              <span className="text-white/30 text-xs font-mono">market cap</span>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-white font-black text-2xl font-mono tabular-nums">
+                {formatLargeNumber(d.total_volume[currency] || 0)}
+              </span>
+              <span className="text-white/30 text-xs font-mono">24h volume</span>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-white font-black text-2xl font-mono tabular-nums">
+                {(d.market_cap_percentage?.btc || 0).toFixed(1)}%
+              </span>
+              <span className="text-white/30 text-xs font-mono">btc dom</span>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-white font-black text-2xl font-mono tabular-nums">
+                {d.active_cryptocurrencies?.toLocaleString()}
+              </span>
+              <span className="text-white/30 text-xs font-mono">coins</span>
+            </div>
+          </div>
         </div>
-      ))}
-    </div>
+      </div>
+    </section>
   );
 }

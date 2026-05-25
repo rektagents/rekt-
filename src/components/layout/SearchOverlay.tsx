@@ -7,7 +7,6 @@ import { searchCoins, getCoinByContract, isContractAddress } from '@/lib/coingec
 import { useDebounce } from '@/hooks/useDebounce';
 import { useSearch } from '@/context/SearchContext';
 import { CHAINS, detectChain } from '@/types/chain';
-import { ChainBadge } from '@/components/ui/ChainBadge';
 import Image from 'next/image';
 import type { ChainId } from '@/types/chain';
 
@@ -21,7 +20,6 @@ export function SearchOverlay() {
 
   const isContract = isContractAddress(debouncedQuery);
 
-  // Auto-detect chain from address
   useEffect(() => {
     if (isContract) {
       const detected = detectChain(debouncedQuery);
@@ -31,7 +29,6 @@ export function SearchOverlay() {
     }
   }, [isContract, debouncedQuery]);
 
-  // Regular search
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['search', debouncedQuery],
     queryFn: () => searchCoins(debouncedQuery),
@@ -39,7 +36,6 @@ export function SearchOverlay() {
     staleTime: 60_000,
   });
 
-  // Contract address lookup
   const { data: contractResult, isLoading: isContractLoading } = useQuery({
     queryKey: ['contract', selectedChain, debouncedQuery],
     queryFn: () => getCoinByContract(selectedChain || 'ethereum', debouncedQuery),
@@ -83,14 +79,14 @@ export function SearchOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] bg-black/80 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <div className="w-full max-w-lg rounded-xl bg-gray-900 border border-gray-800 shadow-2xl overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800">
-          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="w-full max-w-lg border border-white/10 bg-black shadow-2xl overflow-hidden">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
+          <svg className="w-4 h-4 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -98,32 +94,26 @@ export function SearchOverlay() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, symbol, or contract address..."
-            className="flex-1 bg-transparent text-white placeholder-gray-500 outline-none"
+            placeholder="Search by name, symbol, or contract..."
+            className="flex-1 bg-transparent text-white text-sm font-mono placeholder-white/20 outline-none"
           />
-          <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 rounded bg-gray-800 text-gray-400 text-xs">
+          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 border border-white/10 text-white/20 text-[10px] font-mono">
             ESC
           </kbd>
         </div>
 
-        {/* Chain selector for contract addresses */}
         {isContract && (
-          <div className="px-4 py-2 border-b border-gray-800 flex items-center gap-2 overflow-x-auto">
-            <span className="text-xs text-gray-500 shrink-0">Chain:</span>
+          <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2 overflow-x-auto">
+            <span className="text-[10px] text-white/30 font-mono uppercase tracking-widest shrink-0">chain:</span>
             {CHAINS.filter((c) => c.contractPattern.test(debouncedQuery) || c.id === 'solana').map((chain) => (
               <button
                 key={chain.id}
                 onClick={() => setSelectedChain(chain.id)}
-                className={`px-2 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1 ${
+                className={`px-2 py-1 text-[11px] font-mono transition-colors flex items-center gap-1 border ${
                   selectedChain === chain.id
-                    ? 'text-white'
-                    : 'bg-gray-800 text-gray-400 hover:text-white'
+                    ? 'border-white/30 text-white bg-white/[0.05]'
+                    : 'border-white/10 text-white/30 hover:text-white hover:border-white/20'
                 }`}
-                style={
-                  selectedChain === chain.id
-                    ? { backgroundColor: chain.color }
-                    : undefined
-                }
               >
                 {chain.icon} {chain.shortName}
               </button>
@@ -132,96 +122,85 @@ export function SearchOverlay() {
         )}
 
         <div className="max-h-80 overflow-y-auto">
-          {/* Contract address result */}
           {isContract && (
             <>
               {isContractLoading ? (
-                <div className="py-8 text-center text-gray-500">
-                  <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400 mb-2" />
-                  <div>Looking up contract on {CHAINS.find((c) => c.id === selectedChain)?.name}...</div>
+                <div className="py-8 text-center text-white/30 font-mono text-sm">
+                  <div className="inline-block animate-spin h-4 w-4 border border-white/20 border-t-white mb-2" />
+                  <div>Looking up contract...</div>
                 </div>
               ) : contractResult ? (
                 <div className="py-2">
-                  <div className="px-4 py-1.5 text-xs text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                  <div className="px-4 py-1.5 text-[10px] text-white/20 uppercase tracking-widest font-mono">
                     Contract Match
-                    {selectedChain && (
-                      <ChainBadge chain={CHAINS.find((c) => c.id === selectedChain)!} size="sm" />
-                    )}
                   </div>
                   <button
                     onClick={() => handleSelect(contractResult.id)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-800 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.03] transition-colors"
                   >
                     <Image
                       src={contractResult.image?.large || '/placeholder.png'}
                       alt={contractResult.name}
-                      width={32}
-                      height={32}
+                      width={28}
+                      height={28}
                       className="rounded-full"
                     />
                     <div className="text-left">
-                      <div className="text-white font-medium">{contractResult.name}</div>
-                      <div className="text-gray-400 text-sm uppercase">
-                        {contractResult.symbol}
-                      </div>
+                      <div className="text-white text-sm font-medium">{contractResult.name}</div>
+                      <div className="text-white/30 text-xs uppercase font-mono">{contractResult.symbol}</div>
                     </div>
                     {contractResult.market_cap_rank && (
-                      <span className="ml-auto text-gray-500 text-sm">
-                        #{contractResult.market_cap_rank}
-                      </span>
+                      <span className="ml-auto text-white/20 text-xs font-mono">#{contractResult.market_cap_rank}</span>
                     )}
                   </button>
                 </div>
               ) : (
-                <div className="py-8 text-center text-gray-500">
-                  No token found for this contract on {CHAINS.find((c) => c.id === selectedChain)?.name}
+                <div className="py-8 text-center text-white/30 font-mono text-sm">
+                  No token found for this contract
                 </div>
               )}
             </>
           )}
 
-          {/* Regular search results */}
           {!isContract && (
             <>
               {isSearching && debouncedQuery.length >= 2 ? (
-                <div className="py-8 text-center text-gray-500">
-                  <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400" />
+                <div className="py-8 text-center">
+                  <div className="inline-block animate-spin h-4 w-4 border border-white/20 border-t-white" />
                 </div>
               ) : searchResults?.coins && searchResults.coins.length > 0 ? (
                 <div className="py-2">
-                  <div className="px-4 py-1.5 text-xs text-gray-500 uppercase tracking-wider">
+                  <div className="px-4 py-1.5 text-[10px] text-white/20 uppercase tracking-widest font-mono">
                     Coins
                   </div>
                   {searchResults.coins.slice(0, 10).map((coin) => (
                     <button
                       key={coin.id}
                       onClick={() => handleSelect(coin.id)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-800 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.03] transition-colors"
                     >
                       <Image
                         src={coin.thumb}
                         alt={coin.name}
-                        width={24}
-                        height={24}
+                        width={20}
+                        height={20}
                         className="rounded-full"
                       />
-                      <span className="text-white font-medium">{coin.name}</span>
-                      <span className="text-gray-400 text-sm uppercase">{coin.symbol}</span>
+                      <span className="text-white text-sm">{coin.name}</span>
+                      <span className="text-white/30 text-xs uppercase font-mono">{coin.symbol}</span>
                       {coin.market_cap_rank && (
-                        <span className="ml-auto text-gray-500 text-sm">
-                          #{coin.market_cap_rank}
-                        </span>
+                        <span className="ml-auto text-white/20 text-xs font-mono">#{coin.market_cap_rank}</span>
                       )}
                     </button>
                   ))}
                 </div>
               ) : debouncedQuery.length >= 2 ? (
-                <div className="py-8 text-center text-gray-500">No results found</div>
+                <div className="py-8 text-center text-white/30 font-mono text-sm">No results</div>
               ) : (
-                <div className="py-8 text-center text-gray-500">
+                <div className="py-8 text-center text-white/20 font-mono text-sm">
                   <div>Search by name, symbol, or contract address</div>
-                  <div className="text-xs text-gray-600 mt-2">
-                    Supports ETH, SOL, BSC, Polygon, Avalanche, Arbitrum, Optimism, Base
+                  <div className="text-[10px] text-white/10 mt-2 uppercase tracking-widest">
+                    ETH · SOL · BSC · Polygon · Arbitrum · Base
                   </div>
                 </div>
               )}

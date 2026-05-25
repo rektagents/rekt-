@@ -13,40 +13,46 @@ export default function AlertsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-6xl mx-auto px-6 py-16">
       <AlertChecker />
 
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Price Alerts</h1>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          + Create Alert
-        </button>
+      <div className="mb-12">
+        <p className="text-white/30 text-xs font-mono uppercase tracking-widest mb-4">
+          price monitoring
+        </p>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <h1 className="text-4xl font-black tracking-tight">Alerts</h1>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-white text-black px-6 py-2.5 text-sm font-bold font-mono hover:bg-white/90 transition-colors"
+          >
+            + create alert
+          </button>
+        </div>
       </div>
 
       {alerts.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
+        <div className="border border-white/10 p-12 text-center">
+          <p className="text-white/30 font-mono text-sm mb-4">
             No alerts set. Create one to get notified when a price target is hit.
-          </div>
+          </p>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            className="border border-white/20 px-6 py-2.5 text-sm text-white/70 hover:text-white hover:border-white font-mono transition-colors"
           >
-            Create Your First Alert
+            create your first alert →
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px border border-white/10 bg-white/10">
           {alerts.map((alert) => (
-            <AlertCard
-              key={alert.id}
-              alert={alert}
-              onToggle={toggleAlert}
-              onRemove={removeAlert}
-            />
+            <div key={alert.id} className="bg-black">
+              <AlertCard
+                alert={alert}
+                onToggle={toggleAlert}
+                onRemove={removeAlert}
+              />
+            </div>
           ))}
         </div>
       )}

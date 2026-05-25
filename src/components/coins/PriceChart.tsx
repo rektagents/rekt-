@@ -15,6 +15,7 @@ import { useCoinChart } from '@/hooks/useCoinDetail';
 import { useCurrency } from '@/context/CurrencyContext';
 import { formatCurrency } from '@/lib/formatters';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { clsx } from 'clsx';
 import type { TimeFrame } from '@/types/coin';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
@@ -61,13 +62,13 @@ export function PriceChart({ coinId }: PriceChartProps) {
       {
         data: prices.map((p) => p.y),
         borderColor: lineColor,
-        backgroundColor: `${lineColor}1a`,
+        backgroundColor: `${lineColor}0d`,
         fill: true,
         tension: 0.4,
         pointRadius: 0,
         pointHoverRadius: 4,
         pointHoverBackgroundColor: lineColor,
-        borderWidth: 2,
+        borderWidth: 1.5,
       },
     ],
   };
@@ -101,16 +102,17 @@ export function PriceChart({ coinId }: PriceChartProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-1 mb-4">
         {timeframes.map((tf) => (
           <button
             key={tf.value}
             onClick={() => setTimeframe(tf.value)}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+            className={clsx(
+              'px-3 py-1.5 text-xs font-mono transition-colors border',
               timeframe === tf.value
-                ? 'bg-gray-800 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-            }`}
+                ? 'border-white/20 text-white bg-white/[0.03]'
+                : 'border-transparent text-white/30 hover:text-white'
+            )}
           >
             {tf.label}
           </button>

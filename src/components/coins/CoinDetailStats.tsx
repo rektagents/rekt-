@@ -48,14 +48,14 @@ export function CoinDetailStats({ coin }: CoinDetailStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-px border border-white/10 bg-white/10">
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="bg-gray-900 rounded-xl p-4 border border-gray-800"
+          className="bg-black p-4"
         >
-          <div className="text-sm text-gray-400 mb-1">{stat.label}</div>
-          <div className="text-base font-semibold text-white">{stat.value}</div>
+          <div className="text-[10px] text-white/30 font-mono uppercase tracking-widest mb-1">{stat.label}</div>
+          <div className="text-sm font-bold text-white font-mono tabular-nums">{stat.value}</div>
         </div>
       ))}
     </div>

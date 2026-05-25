@@ -3,10 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { getMarketCoins, getGlobalData } from '@/lib/coingecko';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatCurrency, formatLargeNumber, formatPercentage } from '@/lib/formatters';
-import { Badge } from '@/components/ui/Badge';
+import { formatCurrency, formatLargeNumber } from '@/lib/formatters';
 import { SparklineChart } from '@/components/ui/SparklineChart';
-import { Skeleton } from '@/components/ui/Skeleton';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -27,103 +25,176 @@ export function HeroBanner() {
   const isLoading = coinsLoading || globalLoading;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border border-gray-700/50 p-6 md:p-8 mb-8">
-      {/* Glow effect */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+    <>
+      <div className="fade-up-1 mb-6">
+        <span className="text-white/40 text-xs border border-white/10 px-3 py-1 font-mono">
+          live · decentralized · agent-native
+        </span>
+      </div>
 
-      <div className="relative z-10">
-        {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-12 w-64" />
-            <Skeleton className="h-6 w-32" />
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-sm text-gray-400">Bitcoin</span>
-              {btc && (
-                <Badge
-                  value={btc.price_change_percentage_24h}
-                  variant={btc.price_change_percentage_24h >= 0 ? 'gain' : 'loss'}
-                />
-              )}
-            </div>
+      <h1 className="fade-up-2 text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter leading-none mb-6">
+        Track crypto.
+        <br />
+        <span className="text-white/20">Run agents.</span>
+        <br />
+        Stay REKT.
+      </h1>
 
-            {btc && (
-              <div className="flex flex-col md:flex-row md:items-end gap-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <Image
-                      src={btc.image}
-                      alt="Bitcoin"
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
-                    <h1 className="text-4xl md:text-5xl font-bold text-white">
-                      {formatCurrency(btc.current_price, currency)}
-                    </h1>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-400">
-                    <span>MCap: {formatLargeNumber(btc.market_cap)}</span>
-                    <span>Vol: {formatLargeNumber(btc.total_volume)}</span>
-                  </div>
-                </div>
+      <p className="fade-up-3 text-white/50 text-lg sm:text-xl max-w-2xl mb-6 leading-relaxed font-mono">
+        Real-time crypto intelligence for builders, traders, and autonomous agents.
+        Prices, portfolios, alerts, and an agent-native marketplace.
+      </p>
 
-                {/* Mini sparkline */}
-                {btc.sparkline_in_7d?.price && (
-                  <div className="flex-1 max-w-xs">
-                    <SparklineChart
-                      data={btc.sparkline_in_7d.price}
-                      width={200}
-                      height={60}
-                    />
-                  </div>
-                )}
-
-                <Link
-                  href="/coins/bitcoin"
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors backdrop-blur-sm"
-                >
-                  View Details
-                </Link>
-              </div>
-            )}
-
-            {/* Global stats */}
-            {global && (
-              <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-gray-700/50">
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider">Market Cap</div>
-                  <div className="text-white font-semibold">
-                    {formatLargeNumber(global.data.total_market_cap[currency] || 0)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider">24h Volume</div>
-                  <div className="text-white font-semibold">
-                    {formatLargeNumber(global.data.total_volume[currency] || 0)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider">BTC Dominance</div>
-                  <div className="text-white font-semibold">
-                    {(global.data.market_cap_percentage?.btc || 0).toFixed(1)}%
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider">Active Coins</div>
-                  <div className="text-white font-semibold">
-                    {global.data.active_cryptocurrencies.toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
+      <div className="fade-up-3.5 flex flex-wrap gap-2 mb-10">
+        {['10,000+ tokens', '15s refresh', 'Agent directory', 'Portfolio tracking'].map(
+          (tag) => (
+            <span
+              key={tag}
+              className="border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-white/40 font-mono"
+            >
+              {tag}
+            </span>
+          )
         )}
       </div>
-    </div>
+
+      <div className="fade-up-4 flex flex-wrap gap-4 mb-14">
+        <a
+          href="#market-table"
+          className="bg-white text-black px-6 py-3 text-sm font-bold hover:bg-white/90 transition-colors font-mono"
+        >
+          explore market →
+        </a>
+        <Link
+          href="/agents"
+          className="border border-white/20 px-6 py-3 text-sm text-white/70 hover:text-white hover:border-white transition-colors font-mono"
+        >
+          browse agents →
+        </Link>
+        <Link
+          href="/portfolio"
+          className="border border-white/10 bg-white/[0.03] px-6 py-3 text-sm text-white/55 hover:text-white hover:border-white/30 transition-colors font-mono"
+        >
+          track portfolio →
+        </Link>
+      </div>
+
+      {/* BTC card + terminal side by side */}
+      <div className="fade-up-5 mt-14 grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6 items-start">
+        {/* BTC Quick Stats */}
+        <div className="border border-white/10 bg-white/[0.02]">
+          <div className="border-b border-white/10 px-5 py-4 flex items-center justify-between">
+            <div>
+              <p className="text-white text-sm font-semibold tracking-tight">
+                Bitcoin Snapshot
+              </p>
+              <p className="text-white/30 text-xs font-mono mt-1">
+                Top asset by market cap
+              </p>
+            </div>
+            <span className="text-white/20 text-[10px] border border-white/10 px-2 py-1 font-mono uppercase tracking-widest">
+              live
+            </span>
+          </div>
+
+          {isLoading ? (
+            <div className="p-6 space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-4 bg-white/5 animate-pulse" />
+              ))}
+            </div>
+          ) : btc ? (
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Image
+                  src={btc.image}
+                  alt="Bitcoin"
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+                <div>
+                  <div className="text-white font-bold text-xl">
+                    {formatCurrency(btc.current_price, currency)}
+                  </div>
+                  <div
+                    className={`text-xs font-mono ${
+                      btc.price_change_percentage_24h >= 0
+                        ? 'text-green-400'
+                        : 'text-red-400'
+                    }`}
+                  >
+                    {btc.price_change_percentage_24h >= 0 ? '+' : ''}
+                    {btc.price_change_percentage_24h?.toFixed(2)}% (24h)
+                  </div>
+                </div>
+              </div>
+
+              {btc.sparkline_in_7d?.price && (
+                <div className="mb-4">
+                  <SparklineChart
+                    data={btc.sparkline_in_7d.price}
+                    width={280}
+                    height={60}
+                  />
+                </div>
+              )}
+
+              <div className="border border-white/5 grid grid-cols-2 gap-px bg-white/5">
+                <div className="bg-black px-3 py-3">
+                  <p className="text-white font-black text-sm font-mono tabular-nums">
+                    {formatLargeNumber(btc.market_cap)}
+                  </p>
+                  <p className="text-white/30 text-[10px] font-mono uppercase tracking-[0.16em] mt-1">
+                    market cap
+                  </p>
+                </div>
+                <div className="bg-black px-3 py-3">
+                  <p className="text-white font-black text-sm font-mono tabular-nums">
+                    {formatLargeNumber(btc.total_volume)}
+                  </p>
+                  <p className="text-white/30 text-[10px] font-mono uppercase tracking-[0.16em] mt-1">
+                    24h volume
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/coins/bitcoin"
+                className="mt-4 block text-center border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-white/55 hover:text-white hover:border-white/30 transition-colors font-mono"
+              >
+                view details →
+              </Link>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Terminal mockup */}
+        <div className="border border-white/10 bg-black/50">
+          <div className="border-b border-white/10 px-4 py-2 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-white/20" />
+            <div className="w-2 h-2 rounded-full bg-white/20" />
+            <div className="w-2 h-2 rounded-full bg-white/20" />
+            <span className="text-white/30 text-xs ml-2 font-mono">terminal</span>
+          </div>
+          <div className="p-6 font-mono text-sm space-y-1">
+            <p>
+              <span className="text-white/30">$</span>{' '}
+              <span className="text-white">rekt watch --pair BTC/USD</span>
+            </p>
+            <p className="text-white/40">Connecting to market feed...</p>
+            <p className="text-white/40">Subscribing to 10,000+ token pairs</p>
+            <p className="text-white/40">Agent network: 4 active agents online</p>
+            <p className="text-white/40">Portfolio sync: 3 wallets tracked</p>
+            <p className="text-white">
+              ✓ REKT intelligence active — refreshing every 15s
+            </p>
+            <p className="text-white/30">
+              $<span className="ml-1 cursor-blink">_</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

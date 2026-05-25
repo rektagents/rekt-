@@ -21,15 +21,20 @@ export default function PortfolioPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Portfolio</h1>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          + Add Holding
-        </button>
+    <div className="max-w-6xl mx-auto px-6 py-16">
+      <div className="mb-12">
+        <p className="text-white/30 text-xs font-mono uppercase tracking-widest mb-4">
+          your holdings
+        </p>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <h1 className="text-4xl font-black tracking-tight">Portfolio</h1>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-white text-black px-6 py-2.5 text-sm font-bold font-mono hover:bg-white/90 transition-colors"
+          >
+            + add holding
+          </button>
+        </div>
       </div>
 
       <PortfolioSummary
@@ -38,19 +43,21 @@ export default function PortfolioPage() {
         totalPnlPercentage={totalPnlPercentage}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2">
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Holdings</h2>
-            <HoldingsList holdings={holdings} onRemove={removeHolding} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-px border border-white/10 bg-white/10 mt-8">
+        <div className="lg:col-span-2 bg-black p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold tracking-tight uppercase font-mono text-white/60">
+              Holdings
+            </h2>
           </div>
+          <HoldingsList holdings={holdings} onRemove={removeHolding} />
         </div>
 
-        <div>
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Allocation</h2>
-            <AllocationPieChart holdings={holdings} />
-          </div>
+        <div className="bg-black p-6">
+          <h2 className="text-sm font-bold tracking-tight uppercase font-mono text-white/60 mb-4">
+            Allocation
+          </h2>
+          <AllocationPieChart holdings={holdings} />
         </div>
       </div>
 

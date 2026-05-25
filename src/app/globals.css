@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ffffff;
   --gain: #22c55e;
   --loss: #ef4444;
 }
 
 .dark {
-  --background: #030712;
-  --foreground: #f9fafb;
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
 @theme inline {
@@ -17,20 +17,20 @@
   --color-foreground: var(--foreground);
   --color-gain: var(--gain);
   --color-loss: var(--loss);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-mono), var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -38,16 +38,24 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #374151;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4b5563;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* Ticker scroll animation */
-@keyframes scroll {
+/* Grid background pattern */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Marquee / ticker scroll animation */
+@keyframes marquee {
   0% {
     transform: translateX(0);
   }
@@ -56,19 +64,53 @@ body {
   }
 }
 
-.animate-scroll {
-  animation: scroll 60s linear infinite;
+.marquee-inner {
+  animation: marquee 40s linear infinite;
 }
 
-.animate-scroll:hover {
+.marquee-inner:hover {
   animation-play-state: paused;
 }
 
-/* Fade in animation */
+/* Fade up staggered animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up-1 {
+  animation: fadeUp 0.6s ease-out 0.1s both;
+}
+.fade-up-2 {
+  animation: fadeUp 0.6s ease-out 0.2s both;
+}
+.fade-up-3 {
+  animation: fadeUp 0.6s ease-out 0.3s both;
+}
+.fade-up-3\.5 {
+  animation: fadeUp 0.6s ease-out 0.4s both;
+}
+.fade-up-4 {
+  animation: fadeUp 0.6s ease-out 0.5s both;
+}
+.fade-up-5 {
+  animation: fadeUp 0.6s ease-out 0.6s both;
+}
+.fade-up-6 {
+  animation: fadeUp 0.6s ease-out 0.7s both;
+}
+
+/* Legacy fade in up (for components) */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -80,29 +122,52 @@ body {
   animation: fadeInUp 0.5s ease-out forwards;
 }
 
-/* Glow effect for cards */
-.glow-card {
-  position: relative;
+/* Pulse border for "building" status */
+@keyframes pulseBorder {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
 }
 
-.glow-card::before {
+.pulse-border {
+  animation: pulseBorder 2s ease-in-out infinite;
+}
+
+/* Underline hover effect */
+.underline-hover {
+  position: relative;
+  text-decoration: none;
+}
+
+.underline-hover::after {
   content: '';
   position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.2));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: -1;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.2s ease;
 }
 
-.glow-card:hover::before {
-  opacity: 1;
+.underline-hover:hover::after {
+  width: 100%;
 }
 
-/* Glass effect */
-.glass {
-  background: rgba(17, 24, 39, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(75, 85, 99, 0.3);
+/* Table styles override */
+table {
+  border-collapse: collapse;
+}
+
+/* Terminal cursor blink */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
 }

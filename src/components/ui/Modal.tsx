@@ -35,24 +35,24 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
     >
       <div
         className={clsx(
-          'relative w-full max-w-md rounded-xl bg-gray-900 border border-gray-800 p-6 shadow-2xl',
+          'relative w-full max-w-md border border-white/10 bg-black p-6 shadow-2xl',
           className
         )}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-sm font-bold text-white tracking-tight font-mono uppercase">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-white/30 hover:text-white transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

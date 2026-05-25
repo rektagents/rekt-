@@ -9,7 +9,6 @@ import { getMarketCoins, getCoinsByCategory, CHAIN_CATEGORIES } from '@/lib/coin
 import { useCurrency } from '@/context/CurrencyContext';
 import { REFRESH_INTERVALS, PAGE_SIZE } from '@/lib/constants';
 import { formatCurrency, formatPercentage, formatLargeNumber } from '@/lib/formatters';
-import { Badge } from '@/components/ui/Badge';
 import { SparklineChart } from '@/components/ui/SparklineChart';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import type { CoinMarket } from '@/types/coin';
@@ -27,7 +26,6 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('market_cap_rank');
   const [sortAsc, setSortAsc] = useState(true);
 
-  // Use chain-specific endpoint if chain selected
   const category = selectedChain ? CHAIN_CATEGORIES[selectedChain] : undefined;
 
   const { data: coins, isLoading, error } = useQuery({
@@ -61,66 +59,57 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-400 mb-4">Failed to load market data</p>
+      <div className="text-center py-12 border border-white/10">
+        <p className="text-red-400 mb-4 font-mono text-sm">Failed to load market data</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-colors"
+          className="px-4 py-2 border border-white/20 text-white text-xs font-mono hover:bg-white/5 transition-colors"
         >
-          Retry
+          retry →
         </button>
       </div>
     );
   }
 
   return (
-    <div className="glass rounded-xl overflow-hidden">
+    <div id="market-table" className="border border-white/10 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-800">
-              <th
-                onClick={() => handleSort('market_cap_rank')}
-                className="text-left py-3 px-4 text-sm font-medium text-gray-400 cursor-pointer hover:text-white"
-              >
-                # {sortKey === 'market_cap_rank' && (sortAsc ? '↑' : '↓')}
-              </th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">
-                Coin
-              </th>
-              <th
-                onClick={() => handleSort('current_price')}
-                className="text-right py-3 px-4 text-sm font-medium text-gray-400 cursor-pointer hover:text-white"
-              >
-                Price {sortKey === 'current_price' && (sortAsc ? '↑' : '↓')}
-              </th>
-              <th
-                onClick={() => handleSort('price_change_percentage_24h')}
-                className="text-right py-3 px-4 text-sm font-medium text-gray-400 cursor-pointer hover:text-white"
-              >
-                24h % {sortKey === 'price_change_percentage_24h' && (sortAsc ? '↑' : '↓')}
-              </th>
-              <th
-                onClick={() => handleSort('market_cap')}
-                className="text-right py-3 px-4 text-sm font-medium text-gray-400 cursor-pointer hover:text-white hidden md:table-cell"
-              >
-                Market Cap {sortKey === 'market_cap' && (sortAsc ? '↑' : '↓')}
-              </th>
-              <th
-                onClick={() => handleSort('total_volume')}
-                className="text-right py-3 px-4 text-sm font-medium text-gray-400 cursor-pointer hover:text-white hidden lg:table-cell"
-              >
-                Volume {sortKey === 'total_volume' && (sortAsc ? '↑' : '↓')}
-              </th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-400 hidden xl:table-cell">
-                Last 7 Days
-              </th>
+            <tr className="border-b border-white/10">
+              {[
+                { key: 'market_cap_rank' as SortKey, label: '#', align: 'left' },
+                { key: null, label: 'Coin', align: 'left' },
+                { key: 'current_price' as SortKey, label: 'Price', align: 'right' },
+                { key: 'price_change_percentage_24h' as SortKey, label: '24h %', align: 'right' },
+                { key: 'market_cap' as SortKey, label: 'Market Cap', align: 'right', hide: 'md' },
+                { key: 'total_volume' as SortKey, label: 'Volume', align: 'right', hide: 'lg' },
+                { key: null, label: 'Last 7 Days', align: 'right', hide: 'xl' },
+              ].map((col) => (
+                <th
+                  key={col.label}
+                  onClick={() => col.key && handleSort(col.key)}
+                  className={clsx(
+                    'py-3 px-4 text-[11px] font-mono uppercase tracking-[0.16em] text-white/30',
+                    col.align === 'right' ? 'text-right' : 'text-left',
+                    col.key && 'cursor-pointer hover:text-white/60',
+                    col.hide === 'md' && 'hidden md:table-cell',
+                    col.hide === 'lg' && 'hidden lg:table-cell',
+                    col.hide === 'xl' && 'hidden xl:table-cell'
+                  )}
+                >
+                  {col.label}
+                  {col.key && sortKey === col.key && (
+                    <span className="ml-1">{sortAsc ? '↑' : '↓'}</span>
+                  )}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="py-4">
+                <td colSpan={7} className="py-4 px-4">
                   <TableSkeleton />
                 </td>
               </tr>
@@ -134,20 +123,20 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-center gap-4 mt-6 py-4">
+      <div className="flex items-center justify-center gap-4 py-4 border-t border-white/10">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
-          className="px-4 py-2 rounded-lg bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          className="px-4 py-2 border border-white/10 text-white/50 text-xs font-mono disabled:opacity-30 disabled:cursor-not-allowed hover:text-white hover:border-white/30 transition-colors"
         >
-          Previous
+          ← prev
         </button>
-        <span className="text-gray-400">Page {page}</span>
+        <span className="text-white/30 text-xs font-mono">page {page}</span>
         <button
           onClick={() => setPage((p) => p + 1)}
-          className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+          className="px-4 py-2 border border-white/10 text-white/50 text-xs font-mono hover:text-white hover:border-white/30 transition-colors"
         >
-          Next
+          next →
         </button>
       </div>
     </div>
@@ -158,8 +147,8 @@ function CoinRow({ coin, currency }: { coin: CoinMarket; currency: string }) {
   const change24h = coin.price_change_percentage_24h;
 
   return (
-    <tr className="border-b border-gray-800/50 hover:bg-white/5 transition-colors group">
-      <td className="py-4 px-4 text-sm text-gray-400">
+    <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
+      <td className="py-4 px-4 text-xs text-white/30 font-mono">
         {coin.market_cap_rank}
       </td>
       <td className="py-4 px-4">
@@ -167,29 +156,34 @@ function CoinRow({ coin, currency }: { coin: CoinMarket; currency: string }) {
           <Image
             src={coin.image}
             alt={coin.name}
-            width={32}
-            height={32}
+            width={28}
+            height={28}
             className="rounded-full"
           />
           <div>
-            <div className="font-medium text-white">{coin.name}</div>
-            <div className="text-sm text-gray-400 uppercase">{coin.symbol}</div>
+            <div className="text-sm font-medium text-white">{coin.name}</div>
+            <div className="text-[11px] text-white/30 uppercase font-mono">{coin.symbol}</div>
           </div>
         </Link>
       </td>
-      <td className="py-4 px-4 text-right font-medium text-white">
+      <td className="py-4 px-4 text-right text-sm font-medium text-white font-mono tabular-nums">
         {formatCurrency(coin.current_price, currency)}
       </td>
       <td className="py-4 px-4 text-right">
-        <Badge
-          value={change24h}
-          variant={change24h >= 0 ? 'gain' : 'loss'}
-        />
+        <span
+          className={clsx(
+            'text-xs font-mono tabular-nums',
+            change24h >= 0 ? 'text-green-400' : 'text-red-400'
+          )}
+        >
+          {change24h >= 0 ? '+' : ''}
+          {change24h?.toFixed(2)}%
+        </span>
       </td>
-      <td className="py-4 px-4 text-right text-gray-300 hidden md:table-cell">
+      <td className="py-4 px-4 text-right text-xs text-white/40 font-mono tabular-nums hidden md:table-cell">
         {formatLargeNumber(coin.market_cap)}
       </td>
-      <td className="py-4 px-4 text-right text-gray-300 hidden lg:table-cell">
+      <td className="py-4 px-4 text-right text-xs text-white/40 font-mono tabular-nums hidden lg:table-cell">
         {formatLargeNumber(coin.total_volume)}
       </td>
       <td className="py-4 px-4 text-right hidden xl:table-cell">

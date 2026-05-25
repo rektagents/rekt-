@@ -20,36 +20,37 @@ export function PriceTicker() {
   const tickerItems = [...coins, ...coins]; // Duplicate for seamless loop
 
   return (
-    <div className="relative overflow-hidden bg-gray-900/50 border-b border-gray-800/50 py-2">
-      <div className="flex animate-scroll">
+    <div className="border-y border-white/10 overflow-hidden py-3">
+      <div className="marquee-inner flex whitespace-nowrap">
         {tickerItems.map((coin, i) => (
-          <div
+          <span
             key={`${coin.id}-${i}`}
-            className="flex items-center gap-2 px-4 whitespace-nowrap"
+            className="inline-flex items-center gap-4 px-8 text-xs text-white/30 font-mono uppercase tracking-wider"
           >
-            <Image
-              src={coin.image}
-              alt={coin.name}
-              width={16}
-              height={16}
-              className="rounded-full"
-            />
-            <span className="text-sm font-medium text-white uppercase">
-              {coin.symbol}
+            <span className="text-white/10">◆</span>
+            <span className="flex items-center gap-2">
+              <Image
+                src={coin.image}
+                alt={coin.name}
+                width={14}
+                height={14}
+                className="rounded-full opacity-60"
+              />
+              <span className="text-white/50">{coin.symbol}</span>
             </span>
-            <span className="text-sm text-gray-300">
+            <span className="text-white/40">
               {formatCurrency(coin.current_price, currency)}
             </span>
             <span
-              className={`text-xs ${
+              className={
                 coin.price_change_percentage_24h >= 0
-                  ? 'text-green-400'
-                  : 'text-red-400'
-              }`}
+                  ? 'text-green-400/60'
+                  : 'text-red-400/60'
+              }
             >
               {formatPercentage(coin.price_change_percentage_24h)}
             </span>
-          </div>
+          </span>
         ))}
       </div>
     </div>

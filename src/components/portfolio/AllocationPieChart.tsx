@@ -13,22 +13,22 @@ interface AllocationPieChartProps {
 }
 
 const COLORS = [
-  '#3b82f6',
-  '#8b5cf6',
-  '#ec4899',
-  '#f97316',
-  '#eab308',
-  '#22c55e',
-  '#06b6d4',
-  '#f43f5e',
-  '#6366f1',
-  '#14b8a6',
+  '#ffffff',
+  '#a3a3a3',
+  '#737373',
+  '#525252',
+  '#404040',
+  '#262626',
+  '#171717',
+  '#d4d4d4',
+  '#e5e5e5',
+  '#71717a',
 ];
 
 export function AllocationPieChart({ holdings }: AllocationPieChartProps) {
   if (holdings.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-gray-400">
+      <div className="flex items-center justify-center h-48 text-white/30 font-mono text-sm">
         No holdings to display
       </div>
     );
@@ -42,7 +42,7 @@ export function AllocationPieChart({ holdings }: AllocationPieChartProps) {
       {
         data: holdings.map((h) => h.currentValue),
         backgroundColor: COLORS.slice(0, holdings.length),
-        borderColor: '#030712',
+        borderColor: '#000000',
         borderWidth: 2,
       },
     ],
@@ -55,10 +55,14 @@ export function AllocationPieChart({ holdings }: AllocationPieChartProps) {
       legend: {
         position: 'bottom' as const,
         labels: {
-          color: '#9ca3af',
+          color: '#ffffff40',
           padding: 16,
           usePointStyle: true,
           pointStyleWidth: 10,
+          font: {
+            family: 'ui-monospace, monospace',
+            size: 10,
+          },
         },
       },
       tooltip: {

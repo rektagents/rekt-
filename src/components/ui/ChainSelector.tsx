@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { CHAINS } from '@/types/chain';
 import { ChainIcon } from './ChainIcon';
-import type { Chain, ChainId } from '@/types/chain';
+import type { ChainId } from '@/types/chain';
 
 interface ChainSelectorProps {
   selected: ChainId | null;
@@ -33,25 +33,21 @@ export function ChainSelector({ selected, onSelect, className }: ChainSelectorPr
     <div ref={dropdownRef} className={clsx('relative', className)}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 rounded-lg border border-gray-700 hover:border-gray-600 hover:text-white transition-colors min-w-[180px]"
+        className="flex items-center gap-2 px-3 py-1.5 border border-white/10 text-white/40 hover:text-white hover:border-white/30 text-xs font-mono transition-colors min-w-[160px]"
       >
         {selectedChain ? (
           <>
-            <ChainIcon chainId={selectedChain.id} size={18} />
+            <ChainIcon chainId={selectedChain.id} size={14} />
             <span className="flex-1 text-left">{selectedChain.name}</span>
           </>
         ) : (
           <>
-            <div className="w-[18px] h-[18px] rounded-full bg-gray-600 flex items-center justify-center">
-              <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-              </svg>
-            </div>
+            <span className="text-white/20">◈</span>
             <span className="flex-1 text-left">All Chains</span>
           </>
         )}
         <svg
-          className={clsx('w-4 h-4 transition-transform', isOpen && 'rotate-180')}
+          className={clsx('w-3 h-3 transition-transform', isOpen && 'rotate-180')}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -61,7 +57,7 @@ export function ChainSelector({ selected, onSelect, className }: ChainSelectorPr
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-full min-w-[220px] bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full right-0 mt-1 w-full min-w-[200px] bg-black border border-white/10 z-50">
           <div className="py-1">
             <button
               onClick={() => {
@@ -69,21 +65,17 @@ export function ChainSelector({ selected, onSelect, className }: ChainSelectorPr
                 setIsOpen(false);
               }}
               className={clsx(
-                'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors',
+                'w-full flex items-center gap-3 px-4 py-2 text-xs font-mono transition-colors',
                 selected === null
-                  ? 'bg-gray-800 text-white'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-white/[0.05] text-white'
+                  : 'text-white/40 hover:bg-white/[0.03] hover:text-white'
               )}
             >
-              <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
-                <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
-              </div>
+              <span className="text-white/20">◈</span>
               <span className="flex-1 text-left">All Chains</span>
             </button>
 
-            <div className="border-t border-gray-800 my-1" />
+            <div className="border-t border-white/5 my-1" />
 
             {CHAINS.map((chain) => (
               <button
@@ -93,20 +85,15 @@ export function ChainSelector({ selected, onSelect, className }: ChainSelectorPr
                   setIsOpen(false);
                 }}
                 className={clsx(
-                  'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors',
+                  'w-full flex items-center gap-3 px-4 py-2 text-xs font-mono transition-colors',
                   selected === chain.id
-                    ? 'text-white'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-white/[0.05] text-white'
+                    : 'text-white/40 hover:bg-white/[0.03] hover:text-white'
                 )}
-                style={
-                  selected === chain.id
-                    ? { backgroundColor: `${chain.color}30` }
-                    : undefined
-                }
               >
-                <ChainIcon chainId={chain.id} size={20} />
+                <ChainIcon chainId={chain.id} size={14} />
                 <span className="flex-1 text-left">{chain.name}</span>
-                <span className="text-xs text-gray-600 uppercase">{chain.symbol}</span>
+                <span className="text-[10px] text-white/20 uppercase">{chain.symbol}</span>
               </button>
             ))}
           </div>

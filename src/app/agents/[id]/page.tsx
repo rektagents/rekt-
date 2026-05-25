@@ -2,11 +2,10 @@
 
 import { use, useState } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
 import { useAgents } from '@/hooks/useAgents';
 import { AgentAnalytics } from '@/components/agents/AgentAnalytics';
 import { AgentReviews } from '@/components/agents/AgentReviews';
-import { CATEGORY_LABELS, CATEGORY_COLORS } from '@/types/agent';
+import { CATEGORY_LABELS } from '@/types/agent';
 import { clsx } from 'clsx';
 
 export default function AgentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,10 +17,10 @@ export default function AgentDetailPage({ params }: { params: Promise<{ id: stri
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 w-48 bg-gray-800 rounded" />
-          <div className="h-32 bg-gray-800 rounded-xl" />
+          <div className="h-6 w-48 bg-white/5" />
+          <div className="h-48 bg-white/5" />
         </div>
       </div>
     );
@@ -29,221 +28,174 @@ export default function AgentDetailPage({ params }: { params: Promise<{ id: stri
 
   if (!agent) {
     return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 text-center">
-        <p className="text-red-400 mb-4">Agent not found</p>
-        <Link href="/agents" className="text-blue-400 hover:underline">
-          Back to Agents
+      <div className="max-w-6xl mx-auto px-6 py-16 text-center">
+        <p className="text-red-400 font-mono text-sm mb-4">Agent not found</p>
+        <Link href="/agents" className="text-white/40 hover:text-white text-xs font-mono transition-colors">
+          ← back to agents
         </Link>
       </div>
     );
   }
 
-  const categoryColor = CATEGORY_COLORS[agent.category];
-
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      {/* Back button */}
+    <div className="max-w-6xl mx-auto px-6 py-16">
+      {/* Back */}
       <Link
         href="/agents"
-        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
+        className="inline-flex items-center gap-2 text-white/30 hover:text-white text-xs font-mono transition-colors mb-8"
       >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Back to Agents
+        back to agents
       </Link>
 
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border border-gray-700/50 p-6 md:p-8 mb-8">
-        <div
-          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"
-          style={{ backgroundColor: `${categoryColor}10` }}
-        />
-
-        <div className="relative z-10">
+      <div className="border border-white/10 mb-8">
+        <div className="border-b border-white/10 p-6 md:p-8">
           <div className="flex items-start gap-4 mb-6">
-            <div
-              className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl shrink-0"
-              style={{ backgroundColor: `${categoryColor}20` }}
-            >
+            <div className="w-14 h-14 border border-white/10 flex items-center justify-center text-2xl shrink-0 bg-white/[0.03]">
               {agent.avatar || agent.name.charAt(0)}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-white">{agent.name}</h1>
+                <h1 className="text-2xl font-black text-white tracking-tight">{agent.name}</h1>
                 {agent.tokenSymbol && (
-                  <span className="px-2 py-1 rounded-lg bg-gray-800 text-gray-400 text-sm">
+                  <span className="text-[10px] px-2 py-0.5 border border-white/10 text-white/30 font-mono uppercase">
                     ${agent.tokenSymbol}
                   </span>
                 )}
                 <span
                   className={clsx(
-                    'px-2 py-1 rounded-full text-xs font-medium',
+                    'px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest border',
                     agent.status === 'live'
-                      ? 'bg-green-900/30 text-green-400'
+                      ? 'border-green-500/20 text-green-400'
                       : agent.status === 'beta'
-                      ? 'bg-yellow-900/30 text-yellow-400'
-                      : 'bg-gray-800 text-gray-500'
+                      ? 'border-yellow-500/20 text-yellow-400'
+                      : 'border-white/10 text-white/30'
                   )}
                 >
-                  {agent.status === 'live' ? 'Live' : agent.status === 'beta' ? 'Beta' : 'Soon'}
+                  {agent.status === 'live' ? 'live' : agent.status === 'beta' ? 'beta' : 'soon'}
                 </span>
               </div>
-              <p className="text-gray-300 max-w-2xl mb-4">{agent.description}</p>
+              <p className="text-white/40 text-sm max-w-2xl mb-4 leading-relaxed">{agent.description}</p>
 
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span
-                  className="px-3 py-1 rounded-full text-sm font-medium"
-                  style={{
-                    backgroundColor: `${categoryColor}20`,
-                    color: categoryColor,
-                  }}
-                >
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest border border-white/10 text-white/40">
                   {CATEGORY_LABELS[agent.category]}
                 </span>
                 {agent.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 rounded-full text-sm bg-gray-800 text-gray-400"
-                  >
+                  <span key={tag} className="px-2 py-0.5 text-[10px] font-mono text-white/20">
                     {tag}
                   </span>
                 ))}
                 {agent.chain && (
-                  <span className="px-3 py-1 rounded-full text-sm bg-gray-800 text-gray-400 uppercase">
+                  <span className="px-2 py-0.5 text-[10px] font-mono uppercase text-white/20">
                     {agent.chain}
                   </span>
                 )}
               </div>
 
               {/* Links */}
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {agent.website && (
-                  <a
-                    href={agent.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-400 hover:text-white rounded-lg text-sm transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                    </svg>
-                    Website
+                  <a href={agent.website} target="_blank" rel="noopener noreferrer"
+                    className="px-3 py-1.5 border border-white/10 text-white/40 hover:text-white text-xs font-mono transition-colors">
+                    website →
                   </a>
                 )}
                 {agent.twitter && (
-                  <a
-                    href={`https://twitter.com/${agent.twitter.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-400 hover:text-white rounded-lg text-sm transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                    </svg>
-                    Twitter
+                  <a href={`https://twitter.com/${agent.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+                    className="px-3 py-1.5 border border-white/10 text-white/40 hover:text-white text-xs font-mono transition-colors">
+                    twitter →
                   </a>
                 )}
-                {/* Discord link would go here if available */}
               </div>
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <div className="text-sm text-gray-400">Users</div>
-              <div className="text-xl font-bold text-white">{formatNumber(agent.metrics.users)}</div>
-            </div>
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <div className="text-sm text-gray-400">Transactions</div>
-              <div className="text-xl font-bold text-white">{formatNumber(agent.metrics.transactions)}</div>
-            </div>
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <div className="text-sm text-gray-400">Rating</div>
-              <div className="text-xl font-bold text-white flex items-center gap-1">
-                <span className="text-yellow-500">★</span> {agent.metrics.rating?.toFixed(1) || '—'}
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px border border-white/10 bg-white/10">
+            {[
+              { label: 'Users', value: formatNumber(agent.metrics.users) },
+              { label: 'Transactions', value: formatNumber(agent.metrics.transactions) },
+              { label: 'Rating', value: agent.metrics.rating?.toFixed(1) || '—' },
+              { label: 'Volume', value: agent.metrics.volume ? `$${formatNumber(agent.metrics.volume)}` : 'N/A' },
+            ].map((s) => (
+              <div key={s.label} className="bg-black p-4">
+                <p className="text-[10px] text-white/30 font-mono uppercase tracking-widest mb-1">{s.label}</p>
+                <p className="text-lg font-bold text-white font-mono tabular-nums">{s.value}</p>
               </div>
-            </div>
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <div className="text-sm text-gray-400">Volume</div>
-              <div className="text-xl font-bold text-white">
-                {agent.metrics.volume ? `$${formatNumber(agent.metrics.volume)}` : 'N/A'}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-gray-800">
-        {(['overview', 'analytics', 'reviews'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={clsx(
-              'px-4 py-3 text-sm font-medium transition-colors relative',
-              activeTab === tab
-                ? 'text-white'
-                : 'text-gray-400 hover:text-white'
-            )}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            {activeTab === tab && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
-            )}
-          </button>
-        ))}
-      </div>
+        {/* Tabs */}
+        <div className="flex items-center gap-1 border-b border-white/10 px-6">
+          {(['overview', 'analytics', 'reviews'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={clsx(
+                'px-4 py-3 text-xs font-mono uppercase tracking-widest transition-colors relative',
+                activeTab === tab
+                  ? 'text-white'
+                  : 'text-white/30 hover:text-white'
+              )}
+            >
+              {tab}
+              {activeTab === tab && (
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-white" />
+              )}
+            </button>
+          ))}
+        </div>
 
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className="glass rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">About {agent.name}</h2>
-          <p className="text-gray-300 mb-6">{agent.description}</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Content */}
+        <div className="p-6 md:p-8">
+          {activeTab === 'overview' && (
             <div>
-              <h3 className="text-lg font-semibold text-white mb-3">Details</h3>
-              <dl className="space-y-2">
-                <div className="flex justify-between py-2 border-b border-gray-800">
-                  <dt className="text-gray-400">Category</dt>
-                  <dd className="text-white">{CATEGORY_LABELS[agent.category]}</dd>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-800">
-                  <dt className="text-gray-400">Chain</dt>
-                  <dd className="text-white uppercase">{agent.chain || 'Multi'}</dd>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-800">
-                  <dt className="text-gray-400">Status</dt>
-                  <dd className="text-white capitalize">{agent.status}</dd>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-800">
-                  <dt className="text-gray-400">Created</dt>
-                  <dd className="text-white">{agent.createdAt}</dd>
-                </div>
-              </dl>
-            </div>
+              <h2 className="text-xs font-bold text-white/60 uppercase font-mono tracking-widest mb-4">
+                About {agent.name}
+              </h2>
+              <p className="text-white/40 text-sm mb-6 leading-relaxed">{agent.description}</p>
 
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-3">Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {agent.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1.5 rounded-lg bg-gray-800 text-gray-400 text-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-xs font-bold text-white/60 uppercase font-mono tracking-widest mb-3">Details</h3>
+                  <dl className="space-y-0">
+                    {[
+                      ['Category', CATEGORY_LABELS[agent.category]],
+                      ['Chain', (agent.chain || 'Multi').toUpperCase()],
+                      ['Status', agent.status],
+                      ['Created', agent.createdAt],
+                    ].map(([k, v]) => (
+                      <div key={k} className="flex justify-between py-2 border-b border-white/5">
+                        <dt className="text-white/30 text-xs font-mono">{k}</dt>
+                        <dd className="text-white text-xs font-mono">{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+
+                <div>
+                  <h3 className="text-xs font-bold text-white/60 uppercase font-mono tracking-widest mb-3">Tags</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {agent.tags.map((tag) => (
+                      <span key={tag} className="px-2 py-0.5 text-[10px] font-mono border border-white/10 text-white/30">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {activeTab === 'analytics' && <AgentAnalytics agent={agent} />}
-      {activeTab === 'reviews' && <AgentReviews agentId={agent.id} />}
+          {activeTab === 'analytics' && <AgentAnalytics agent={agent} />}
+          {activeTab === 'reviews' && <AgentReviews agentId={agent.id} />}
+        </div>
+      </div>
     </div>
   );
 }

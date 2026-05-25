@@ -1,8 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import { clsx } from 'clsx';
-import { CATEGORY_LABELS, CATEGORY_COLORS } from '@/types/agent';
+import { CATEGORY_LABELS } from '@/types/agent';
 import type { Agent } from '@/types/agent';
 
 interface AgentLeaderboardProps {
@@ -27,88 +26,81 @@ export function AgentLeaderboard({ agents, sortBy = 'users' }: AgentLeaderboardP
   });
 
   return (
-    <div className="glass rounded-xl overflow-hidden">
+    <div className="border border-white/10 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-800">
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400 w-12">Rank</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Agent</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400 hidden md:table-cell">Category</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">Users</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-400 hidden sm:table-cell">Rating</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Volume</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-400 hidden lg:table-cell">Txns</th>
+            <tr className="border-b border-white/10">
+              {['Rank', 'Agent', 'Category', 'Users', 'Rating', 'Volume', 'Txns'].map((h) => (
+                <th
+                  key={h}
+                  className={clsx(
+                    'py-3 px-4 text-[11px] font-mono uppercase tracking-[0.16em] text-white/30',
+                    h === 'Rank' || h === 'Agent' ? 'text-left' : 'text-right',
+                    h === 'Category' && 'hidden md:table-cell text-left',
+                    h === 'Rating' && 'hidden sm:table-cell',
+                    h === 'Volume' && 'hidden lg:table-cell',
+                    h === 'Txns' && 'hidden lg:table-cell'
+                  )}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {sorted.map((agent, index) => (
               <tr
                 key={agent.id}
-                className="border-b border-gray-800/50 hover:bg-white/5 transition-colors"
+                className="border-b border-white/5 hover:bg-white/[0.02] transition-colors"
               >
                 <td className="py-4 px-4">
-                  <div
+                  <span
                     className={clsx(
-                      'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
-                      {
-                        'bg-yellow-500/20 text-yellow-500': index === 0,
-                        'bg-gray-400/20 text-gray-400': index === 1,
-                        'bg-orange-500/20 text-orange-500': index === 2,
-                        'bg-gray-800 text-gray-500': index > 2,
-                      }
+                      'w-7 h-7 inline-flex items-center justify-center text-xs font-mono',
+                      index < 3 ? 'text-white font-bold' : 'text-white/30'
                     )}
                   >
                     {index + 1}
-                  </div>
+                  </span>
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
-                      style={{ backgroundColor: `${CATEGORY_COLORS[agent.category]}20` }}
-                    >
+                    <div className="w-8 h-8 border border-white/10 flex items-center justify-center text-sm shrink-0 bg-white/[0.03]">
                       {agent.avatar || agent.name.charAt(0)}
                     </div>
                     <div>
-                      <div className="font-medium text-white flex items-center gap-2">
+                      <div className="text-sm font-medium text-white flex items-center gap-2">
                         {agent.name}
                         {agent.tokenSymbol && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-800 text-gray-400">
+                          <span className="text-[10px] px-1.5 py-0.5 border border-white/10 text-white/30 font-mono uppercase">
                             ${agent.tokenSymbol}
                           </span>
                         )}
                       </div>
-                      <div className="text-sm text-gray-400 truncate max-w-[200px]">
+                      <div className="text-xs text-white/30 truncate max-w-[200px]">
                         {agent.description}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td className="py-4 px-4 hidden md:table-cell">
-                  <span
-                    className="px-2 py-1 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: `${CATEGORY_COLORS[agent.category]}20`,
-                      color: CATEGORY_COLORS[agent.category],
-                    }}
-                  >
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">
                     {CATEGORY_LABELS[agent.category]}
                   </span>
                 </td>
-                <td className="py-4 px-4 text-right text-white font-medium">
+                <td className="py-4 px-4 text-right text-sm text-white font-mono tabular-nums">
                   {formatNumber(agent.metrics.users)}
                 </td>
                 <td className="py-4 px-4 text-right hidden sm:table-cell">
-                  <div className="flex items-center justify-end gap-1">
-                    <span className="text-yellow-500">★</span>
-                    <span className="text-white">{agent.metrics.rating?.toFixed(1) || '—'}</span>
-                  </div>
+                  <span className="text-sm text-white/50 font-mono tabular-nums">
+                    {agent.metrics.rating?.toFixed(1) || '—'}
+                  </span>
                 </td>
-                <td className="py-4 px-4 text-right text-gray-300 hidden lg:table-cell">
+                <td className="py-4 px-4 text-right text-xs text-white/40 font-mono tabular-nums hidden lg:table-cell">
                   {agent.metrics.volume ? `$${formatNumber(agent.metrics.volume)}` : '—'}
                 </td>
-                <td className="py-4 px-4 text-right text-gray-300 hidden lg:table-cell">
+                <td className="py-4 px-4 text-right text-xs text-white/40 font-mono tabular-nums hidden lg:table-cell">
                   {formatNumber(agent.metrics.transactions)}
                 </td>
               </tr>

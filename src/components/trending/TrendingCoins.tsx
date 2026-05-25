@@ -42,10 +42,10 @@ export function TrendingCoins({ selectedChain }: TrendingCoinsProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px border border-white/10 bg-white/10">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="glass rounded-xl p-4">
-            <Skeleton className="h-6 w-6 rounded-full mb-2" />
+          <div key={i} className="bg-black p-4">
+            <Skeleton className="h-6 w-6 mb-2" />
             <Skeleton className="h-4 w-24 mb-1" />
             <Skeleton className="h-3 w-16" />
           </div>
@@ -56,37 +56,37 @@ export function TrendingCoins({ selectedChain }: TrendingCoinsProps) {
 
   if (!data?.coins || data.coins.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-white/30 font-mono text-sm border border-white/10">
         No trending coins found {selectedChain ? 'for this chain' : ''}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px border border-white/10 bg-white/10">
       {data.coins.slice(0, 8).map((item) => (
         <Link
           key={item.item.id}
           href={`/coins/${item.item.id}`}
-          className="glass rounded-xl p-4 hover:border-gray-600 transition-all"
+          className="bg-black p-5 hover:bg-white/[0.03] transition-colors"
         >
           <div className="flex items-center gap-3">
             <Image
               src={item.item.thumb}
               alt={item.item.name}
-              width={32}
-              height={32}
+              width={28}
+              height={28}
               className="rounded-full"
             />
             <div>
-              <div className="font-medium text-white">{item.item.name}</div>
-              <div className="text-sm text-gray-400 uppercase">
+              <div className="text-sm font-medium text-white">{item.item.name}</div>
+              <div className="text-[11px] text-white/30 uppercase font-mono">
                 {item.item.symbol}
               </div>
             </div>
           </div>
           {item.item.market_cap_rank && (
-            <div className="mt-2 text-sm text-gray-500">
+            <div className="mt-3 text-[11px] text-white/20 font-mono">
               Rank #{item.item.market_cap_rank}
             </div>
           )}
