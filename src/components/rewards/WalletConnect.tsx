@@ -1,10 +1,27 @@
 'use client';
 
-import { useWallet } from '@/hooks/useWallet';
+import { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi';
 import { clsx } from 'clsx';
 
+const WALLET_ICONS: Record<string, string> = {
+  MetaMask: 'M',
+  'Coinbase Wallet': 'C',
+  WalletConnect: 'W',
+  Injected: '◈',
+};
+
+const WALLET_LABELS: Record<string, string> = {
+  MetaMask: 'MetaMask',
+  'Coinbase Wallet': 'Coinbase',
+  WalletConnect: 'WalletConnect',
+  Injected: 'Browser Wallet',
+};
+
 export function WalletConnect() {
-  const { address, isConnected, isConnecting, chain, balance, connectWallet, disconnect } = useWallet();
+  const { address, isConnected, chain } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { data: balance } = useBalance({ address });
 
   if (isConnected && address) {
     return (
@@ -38,22 +55,30 @@ export function WalletConnect() {
   }
 
   return (
-    <div className="border border-white/10 p-6 text-center">
-      <p className="text-white/30 text-xs font-mono uppercase tracking-widest mb-4">
+    <div className="border border-white/10 p-6">
+      <p className="text-[10px] text-white/30 font-mono uppercase tracking-widest mb-4 text-center">
         connect wallet
       </p>
-      <p className="text-white/50 text-sm mb-4 font-mono">
-        Connect your wallet to start earning REKT tokens
-      </p>
-      <button
-        onClick={connectWallet}
-        disabled={isConnecting}
-        className="w-full py-2.5 bg-white text-black text-xs font-bold font-mono uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-30"
-      >
-        {isConnecting ? 'connecting...' : 'connect metamask'}
-      </button>
-      <p className="text-[10px] text-white/20 font-mono mt-3">
-        Supports MetaMask and other injected wallets
+      <div className="space-y-2">
+        {connectors.map((connector) => (
+          <button
+            key={connector.uid}
+            onClick={() => connect({ connector })}
+            disabled={isPending}
+            className="w-full flex items-center gap-3 px-4 py-3 border border-white/10 text-white/60 hover:text-white hover:border-white/30 hover:bg-white/[0.02] transition-colors disabled:opacity-30"
+          >
+            <span className="w-6 h-6 border border-white/10 flex items-center justify-center text-xs font-mono text-white/40 bg-white/[0.03]">
+              {WALLET_ICONS[connector.name] || '◈'}
+            </span>
+            <span className="text-sm font-mono flex-1 text-left">
+              {WALLET_LABELS[connector.name] || connector.name}
+            </span>
+            <span className="text-[10px] text-white/20 font-mono">→</span>
+          </button>
+        ))}
+      </div>
+      <p className="text-[10px] text-white/15 font-mono text-center mt-4">
+        Base network (mainnet / testnet)
       </p>
     </div>
   );
