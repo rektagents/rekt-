@@ -10,20 +10,28 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.14",
+    "@wagmi/core": "^3.4.12",
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "viem": "^2.51.0",
+    "wagmi": "^3.6.15"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^4.0.12",
+    "@openzeppelin/contracts": "^5.6.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "ethers": "^6.16.0",
+    "hardhat": "^3.5.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
