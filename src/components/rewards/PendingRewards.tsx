@@ -2,11 +2,15 @@
 
 import { useWallet } from '@/hooks/useWallet';
 import { usePendingRewards } from '@/hooks/useRewards';
+import { usePendingRewardOnChain } from '@/hooks/useOnChainRewards';
 import { ClaimButton } from './ClaimButton';
+import { isOnChainEnabled } from '@/lib/contracts';
+import { formatEther } from 'viem';
 
 export function PendingRewards() {
   const { address } = useWallet();
   const { data, isLoading } = usePendingRewards(address);
+  const { data: onChainPending } = usePendingRewardOnChain(address);
 
   if (!address) return null;
 
@@ -21,6 +25,7 @@ export function PendingRewards() {
 
   const reg = data?.registration;
   const pending = data?.pending;
+  const onChainAmount = onChainPending ? Number(formatEther(onChainPending as bigint)) : 0;
 
   if (!reg) return null;
 
@@ -33,6 +38,11 @@ export function PendingRewards() {
         <p className="text-3xl font-black text-white font-mono tabular-nums tracking-tight">
           {pending?.total?.toFixed(2) || '0.00'} <span className="text-white/30 text-lg">REKT</span>
         </p>
+        {isOnChainEnabled && onChainAmount > 0 && (
+          <p className="text-xs text-green-400/60 font-mono mt-1">
+            {onChainAmount.toFixed(2)} REKT claimable on-chain
+          </p>
+        )}
       </div>
       <div className="grid grid-cols-3 gap-px bg-white/10">
         <div className="bg-black p-4 text-center">
