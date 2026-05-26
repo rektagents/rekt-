@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyTask } from '@/lib/rewards-store';
+import { updateStreak, progressQuests } from '@/lib/quests-store';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +14,12 @@ export async function POST(req: NextRequest) {
     }
 
     const task = await verifyTask(taskId);
-    return NextResponse.json(task);
+
+    // Update streak and progress quests
+    const streak = await updateStreak(task.wallet);
+    await progressQuests(task.wallet, task.task_type, task.score);
+
+    return NextResponse.json({ ...task, streak });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Failed to verify task' },

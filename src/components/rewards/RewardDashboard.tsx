@@ -6,6 +6,7 @@ import { RegistrationFlow } from './RegistrationFlow';
 import { PendingRewards } from './PendingRewards';
 import { TaskSubmission } from './TaskSubmission';
 import { RewardHistory } from './RewardHistory';
+import { QuestsPanel } from './QuestsPanel';
 import { RewardLeaderboard } from './RewardLeaderboard';
 import { usePendingRewards } from '@/hooks/useRewards';
 
@@ -41,6 +42,9 @@ export function RewardDashboard() {
           <RewardLeaderboard />
         </div>
       </div>
+
+      {/* Quests */}
+      {isConnected && isRegistered && <QuestsPanel />}
 
       {/* Reward History */}
       <RewardHistory />

@@ -47,6 +47,19 @@ const phases = [
   },
   {
     num: '04',
+    title: 'Gamification',
+    status: 'next',
+    date: 'June 2026',
+    items: [
+      { text: 'Daily quests (complete tasks, hit scores)', done: false },
+      { text: 'Weekly quests (multi-type, streaks)', done: false },
+      { text: 'Achievement badges (milestones)', done: false },
+      { text: 'Streak system with reward multipliers', done: false },
+      { text: 'Seasonal leaderboard with prize pools', done: false },
+    ],
+  },
+  {
+    num: '05',
     title: 'Scale & Ship',
     status: 'planned',
     date: 'July 2026',
