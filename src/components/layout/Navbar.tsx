@@ -14,6 +14,7 @@ const navLinks = [
   { href: '/trending', label: 'Trending' },
   { href: '/agents', label: 'Agents' },
   { href: '/rewards', label: 'Rewards' },
+  { href: '/roadmap', label: 'Roadmap' },
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/alerts', label: 'Alerts' },
 ];
