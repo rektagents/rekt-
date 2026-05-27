@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Line, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -16,19 +17,56 @@ import type { Agent } from '@/types/agent';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Filler, Legend);
 
+interface AnalyticsPoint {
+  value: number;
+  recorded_at: string;
+}
+
 interface AgentAnalyticsProps {
   agent: Agent;
 }
 
 export function AgentAnalytics({ agent }: AgentAnalyticsProps) {
-  const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+  const [userData, setUserData] = useState<AnalyticsPoint[]>([]);
+  const [txData, setTxData] = useState<AnalyticsPoint[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const userData = {
-    labels,
+  useEffect(() => {
+    async function fetchAnalytics() {
+      try {
+        const [usersRes, txRes] = await Promise.all([
+          fetch(`/api/agents/${agent.id}/analytics?metric=users&days=30`),
+          fetch(`/api/agents/${agent.id}/analytics?metric=transactions&days=30`),
+        ]);
+
+        if (usersRes.ok) {
+          const data = await usersRes.json();
+          setUserData(data);
+        }
+        if (txRes.ok) {
+          const data = await txRes.json();
+          setTxData(data);
+        }
+      } catch {
+        // Fall back to empty — component handles gracefully
+      }
+      setLoading(false);
+    }
+    fetchAnalytics();
+  }, [agent.id]);
+
+  const userLabels = userData.length > 0
+    ? userData.map((d) => new Date(d.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+
+  const userChartData = {
+    labels: userLabels,
     datasets: [
       {
         label: 'Users',
-        data: [1200, 1900, 3000, 5000, 7200, 9800, agent.metrics.users],
+        data: userData.length > 0
+          ? userData.map((d) => d.value)
+          : [1200, 1900, 3000, 5000, 7200, 9800, agent.metrics.users],
         borderColor: '#ffffff',
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         fill: true,
@@ -39,12 +77,18 @@ export function AgentAnalytics({ agent }: AgentAnalyticsProps) {
     ],
   };
 
-  const transactionData = {
-    labels,
+  const txLabels = txData.length > 0
+    ? txData.map((d) => new Date(d.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+
+  const txChartData = {
+    labels: txLabels,
     datasets: [
       {
         label: 'Transactions',
-        data: [5000, 12000, 28000, 45000, 68000, 95000, agent.metrics.transactions],
+        data: txData.length > 0
+          ? txData.map((d) => d.value)
+          : [5000, 12000, 28000, 45000, 68000, 95000, agent.metrics.transactions],
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
         borderColor: '#ffffff',
         borderWidth: 1,
@@ -84,20 +128,41 @@ export function AgentAnalytics({ agent }: AgentAnalyticsProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-px border border-white/10 bg-white/10">
-        <div className="bg-black p-6">
-          <h3 className="text-xs font-bold text-white/60 uppercase font-mono tracking-widest mb-4">User Growth</h3>
-          <div className="h-48">
-            <Line data={userData} options={chartOptions} />
+      {loading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-px border border-white/10 bg-white/10">
+          <div className="bg-black p-6 h-64 animate-pulse flex items-center justify-center">
+            <span className="text-white/10 text-xs font-mono">loading...</span>
+          </div>
+          <div className="bg-black p-6 h-64 animate-pulse flex items-center justify-center">
+            <span className="text-white/10 text-xs font-mono">loading...</span>
           </div>
         </div>
-        <div className="bg-black p-6">
-          <h3 className="text-xs font-bold text-white/60 uppercase font-mono tracking-widest mb-4">Transactions</h3>
-          <div className="h-48">
-            <Bar data={transactionData} options={chartOptions} />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-px border border-white/10 bg-white/10">
+          <div className="bg-black p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold text-white/60 uppercase font-mono tracking-widest">User Growth</h3>
+              {userData.length > 0 && (
+                <span className="text-[10px] text-green-400/60 font-mono">LIVE DATA</span>
+              )}
+            </div>
+            <div className="h-48">
+              <Line data={userChartData} options={chartOptions} />
+            </div>
+          </div>
+          <div className="bg-black p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold text-white/60 uppercase font-mono tracking-widest">Transactions</h3>
+              {txData.length > 0 && (
+                <span className="text-[10px] text-green-400/60 font-mono">LIVE DATA</span>
+              )}
+            </div>
+            <div className="h-48">
+              <Bar data={txChartData} options={chartOptions} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="border border-white/10 p-6">
         <h3 className="text-xs font-bold text-white/60 uppercase font-mono tracking-widest mb-4">Recent Activity</h3>

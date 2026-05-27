@@ -13,6 +13,7 @@ const navLinks = [
   { href: '/', label: 'Market' },
   { href: '/trending', label: 'Trending' },
   { href: '/agents', label: 'Agents' },
+  { href: '/tools', label: 'Tools' },
   { href: '/rewards', label: 'Rewards' },
   { href: '/roadmap', label: 'Roadmap' },
   { href: '/portfolio', label: 'Portfolio' },
