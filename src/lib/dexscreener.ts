@@ -10,36 +10,59 @@ import type {
 
 const BASE_URL = 'https://api.dexscreener.com';
 
-// TrustWallet assets CDN for fallback icons
-const TRUSTWALLET_CHAIN_MAP: Record<string, string> = {
+// CoinGecko icon cache (long-lived — icons don't change)
+const iconCache = new Map<string, string>();
+const ICON_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const iconCacheTimestamps = new Map<string, number>();
+
+// CoinGecko platform mapping
+const COINGECKO_PLATFORMS: Record<string, string> = {
   ethereum: 'ethereum',
-  bsc: 'smartchain',
+  bsc: 'binance-smart-chain',
   base: 'base',
-  arbitrum: 'arbitrum',
-  polygon: 'polygon',
+  arbitrum: 'arbitrum-one',
+  polygon: 'polygon-pos',
   avalanche: 'avalanche',
-  optimism: 'optimism',
+  optimism: 'optimistic-ethereum',
+  solana: 'solana',
   linea: 'linea',
   scroll: 'scroll',
   zksync: 'zksync',
   mantle: 'mantle',
   blast: 'blast',
   sonic: 'sonic',
-  bnb: 'smartchain',
+  bnb: 'binance-smart-chain',
   cronos: 'cronos',
   fantom: 'fantom',
   pulsechain: 'pulsechain',
 };
 
-function getFallbackIconUrl(chainId: string, address: string): string {
-  // Solana: use Jupiter CDN
-  if (chainId === 'solana') {
-    return `https://cdn.jup.ag/icons/${address}.png`;
+// Fetch icon from CoinGecko by contract address
+async function getCoinGeckoIcon(chainId: string, address: string): Promise<string> {
+  const key = `${chainId}:${address.toLowerCase()}`;
+  const cached = iconCache.get(key);
+  const ts = iconCacheTimestamps.get(key);
+  if (cached && ts && Date.now() - ts < ICON_CACHE_DURATION) return cached;
+
+  const platform = COINGECKO_PLATFORMS[chainId];
+  if (!platform) return '';
+
+  try {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${platform}/contract/${address}`,
+      { next: { revalidate: 86400 } } // 24h ISR
+    );
+    if (!res.ok) return '';
+    const data = await res.json();
+    const img = data.image?.small || data.image?.thumb || '';
+    if (img) {
+      iconCache.set(key, img);
+      iconCacheTimestamps.set(key, Date.now());
+    }
+    return img;
+  } catch {
+    return '';
   }
-  // EVM chains: use TrustWallet assets
-  const twChain = TRUSTWALLET_CHAIN_MAP[chainId];
-  if (!twChain) return '';
-  return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${twChain}/assets/${address}/logo.png`;
 }
 
 
@@ -122,12 +145,11 @@ function deduplicatePairs(pairs: DexPair[]): DexPair[] {
 
 // Convert DexScreener pair to our CoinMarket format
 function pairToCoinMarket(pair: DexPair): CoinMarket {
-  const image = pair.info?.imageUrl || getFallbackIconUrl(pair.chainId, pair.baseToken.address);
   return {
     id: `${pair.chainId}:${pair.baseToken.address}`,
     symbol: pair.baseToken.symbol,
     name: pair.baseToken.name,
-    image,
+    image: pair.info?.imageUrl || '',
     current_price: parseFloat(pair.priceUsd) || 0,
     market_cap: pair.marketCap || 0,
     market_cap_rank: 0,
@@ -163,13 +185,12 @@ function pairToCoinMarket(pair: DexPair): CoinMarket {
 // Convert DexScreener pair to CoinDetail format
 function pairToCoinDetail(pair: DexPair): CoinDetail {
   const price = parseFloat(pair.priceUsd) || 0;
-  const imageUrl = pair.info?.imageUrl || getFallbackIconUrl(pair.chainId, pair.baseToken.address);
   return {
     id: pair.pairAddress,
     symbol: pair.baseToken.symbol,
     name: pair.baseToken.name,
     description: { en: pair.info?.description || '' },
-    image: { large: imageUrl },
+    image: { large: pair.info?.imageUrl || '' },
     market_cap_rank: 0,
     market_data: {
       current_price: { usd: price },
@@ -259,17 +280,32 @@ export async function getMarketCoins(
 
     const iconMap = await getTokenIconMap();
 
-    return deduplicatePairs(allPairs)
+    const coins = deduplicatePairs(allPairs)
       .sort((a, b) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
       .slice(0, 50)
       .map((pair) => {
         const coin = pairToCoinMarket(pair);
         if (!coin.image) {
           const key = `${pair.chainId}:${pair.baseToken.address.toLowerCase()}`;
-          coin.image = iconMap.get(key) || getFallbackIconUrl(pair.chainId, pair.baseToken.address);
+          coin.image = iconMap.get(key) || '';
         }
         return coin;
       });
+
+    // Fetch missing icons from CoinGecko
+    const missing = coins.filter((c) => !c.image);
+    if (missing.length > 0) {
+      const icons = await Promise.allSettled(
+        missing.map((c) => getCoinGeckoIcon(c.chainId!, c.baseToken!.address))
+      );
+      missing.forEach((coin, i) => {
+        if (icons[i].status === 'fulfilled' && icons[i].value) {
+          coin.image = icons[i].value;
+        }
+      });
+    }
+
+    return coins;
   } catch {
     return [];
   }
@@ -311,7 +347,14 @@ export async function getCoinDetail(chainId: string, address: string): Promise<C
 
     // Use the pair with highest liquidity
     const bestPair = pairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
-    return pairToCoinDetail(bestPair);
+    const detail = pairToCoinDetail(bestPair);
+
+    // Fetch icon from CoinGecko if missing
+    if (!detail.image.large) {
+      detail.image.large = await getCoinGeckoIcon(chainId, address);
+    }
+
+    return detail;
   } catch {
     return null;
   }
@@ -331,12 +374,12 @@ export async function getTokenPairs(chainId: string, address: string): Promise<D
 export async function getTrending(): Promise<TrendingCoin[]> {
   try {
     const profiles = await fetchDex<DexTokenProfile[]>('/token-profiles/latest/v1');
-    return (profiles || []).slice(0, 30).map((p) => ({
+    const items = (profiles || []).slice(0, 30).map((p) => ({
       item: {
         id: `${p.chainId}:${p.tokenAddress}`,
         name: p.description || p.tokenAddress,
         symbol: p.tokenAddress.slice(0, 6),
-        thumb: p.icon || getFallbackIconUrl(p.chainId, p.tokenAddress),
+        thumb: p.icon || '',
         market_cap_rank: 0,
         score: 0,
         price_btc: 0,
@@ -344,6 +387,21 @@ export async function getTrending(): Promise<TrendingCoin[]> {
         tokenAddress: p.tokenAddress,
       },
     }));
+
+    // Fetch missing icons from CoinGecko
+    const missing = items.filter((t) => !t.item.thumb);
+    if (missing.length > 0) {
+      const icons = await Promise.allSettled(
+        missing.map((t) => getCoinGeckoIcon(t.item.chainId!, t.item.tokenAddress!))
+      );
+      missing.forEach((t, i) => {
+        if (icons[i].status === 'fulfilled' && icons[i].value) {
+          t.item.thumb = icons[i].value;
+        }
+      });
+    }
+
+    return items;
   } catch {
     return [];
   }
@@ -366,11 +424,25 @@ export async function searchCoins(query: string): Promise<{ coins: { id: string;
         id: `${p.chainId}:${p.baseToken.address}`,
         name: p.baseToken.name,
         symbol: p.baseToken.symbol,
-        thumb: p.info?.imageUrl || getFallbackIconUrl(p.chainId, p.baseToken.address),
+        thumb: p.info?.imageUrl || '',
         market_cap_rank: 0,
         chainId: p.chainId,
         tokenAddress: p.baseToken.address,
       }));
+
+    // Fetch missing icons from CoinGecko
+    const missing = coins.filter((c) => !c.thumb);
+    if (missing.length > 0) {
+      const icons = await Promise.allSettled(
+        missing.map((c) => getCoinGeckoIcon(c.chainId!, c.tokenAddress!))
+      );
+      missing.forEach((c, i) => {
+        if (icons[i].status === 'fulfilled' && icons[i].value) {
+          c.thumb = icons[i].value;
+        }
+      });
+    }
+
     return { coins };
   } catch {
     return { coins: [] };
