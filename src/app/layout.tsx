@@ -18,8 +18,36 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "REKT — Crypto Intelligence",
-  description: "Track crypto prices, manage your portfolio, and discover agent-native opportunities",
+  title: "REKT — Crypto Intelligence for Agent Builders",
+  description: "Track every DEX token in real-time. Portfolio tracking, price alerts, agent directory, and builder tools. Powered by DexScreener.",
+  metadataBase: new URL('https://rekt-rho.vercel.app'),
+  openGraph: {
+    title: "REKT — Crypto Intelligence for Agent Builders",
+    description: "Track every DEX token in real-time. Portfolio tracking, price alerts, agent directory, and builder tools.",
+    url: 'https://rekt-rho.vercel.app',
+    siteName: 'REKT',
+    images: [
+      {
+        url: '/og.svg',
+        width: 1200,
+        height: 630,
+        alt: 'REKT — Crypto Intelligence',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "REKT — Crypto Intelligence for Agent Builders",
+    description: "Track every DEX token in real-time. Portfolio, alerts, agent directory, and builder tools.",
+    images: ['/og.svg'],
+  },
+  manifest: '/manifest.json',
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
