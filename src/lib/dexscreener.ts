@@ -172,19 +172,32 @@ export async function getMarketCoins(
   page: number = 1,
   _perPage: number = 50
 ): Promise<CoinMarket[]> {
-  // DexScreener doesn't have a paginated "all markets" endpoint.
-  // We search for popular terms to get a diverse set.
-  const queries = ['sol', 'eth', 'usdc', 'pepe', 'doge', 'ai', 'meme', 'defi', 'gaming', 'base'];
-  const q = queries[(page - 1) % queries.length];
+  // Fetch multiple search terms in parallel for a diverse market table
+  const queries = [
+    ['bitcoin', 'ethereum', 'solana', 'usdt', 'bnb'],
+    ['pepe', 'doge', 'shib', 'bonk', 'wojak'],
+    ['ai', 'agent', 'virtual', 'render', 'fet'],
+    ['defi', 'aave', 'uni', 'link', 'mkr'],
+    ['meme', 'floki', 'brett', 'mog', 'popcat'],
+  ];
+  const batch = queries[(page - 1) % queries.length];
 
   try {
-    const result = await fetchDex<DexSearchResult>(`/latest/dex/search?q=${q}`);
-    const pairs = deduplicatePairs(
-      (result.pairs || []).filter((p) => p.priceUsd && parseFloat(p.priceUsd) > 0)
-    )
+    const results = await Promise.allSettled(
+      batch.map((q) => fetchDex<DexSearchResult>(`/latest/dex/search?q=${q}`))
+    );
+
+    const allPairs: DexPair[] = [];
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value.pairs) {
+        allPairs.push(...r.value.pairs.filter((p) => p.priceUsd && parseFloat(p.priceUsd) > 0));
+      }
+    }
+
+    return deduplicatePairs(allPairs)
       .sort((a, b) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
-      .slice(0, 30);
-    return pairs.map(pairToCoinMarket);
+      .slice(0, 50)
+      .map(pairToCoinMarket);
   } catch {
     return [];
   }
