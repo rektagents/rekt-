@@ -30,7 +30,7 @@ export function TaskSubmission() {
       wallet: address,
       type: taskType,
       score,
-      proof: proof || 'demo-proof',
+      proof: proof || '',
     });
 
     setLastTaskId(result.id);

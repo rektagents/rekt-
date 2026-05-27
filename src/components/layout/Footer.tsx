@@ -62,8 +62,8 @@ export function Footer() {
             </p>
             <ul className="space-y-2">
               <li>
-                <Link href="/trending" className="text-white/50 hover:text-white text-xs transition-colors underline-hover font-mono">
-                  Top Movers
+                <Link href="/marketplace" className="text-white/50 hover:text-white text-xs transition-colors underline-hover font-mono">
+                  Task Marketplace
                 </Link>
               </li>
               <li>

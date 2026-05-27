@@ -36,9 +36,15 @@ export async function PATCH(
   const body = await req.json();
   const supabase = getSupabase();
 
+  // Whitelist allowed fields to prevent arbitrary column updates
+  const allowed: Record<string, unknown> = {};
+  if (body.status !== undefined) allowed.status = body.status;
+  if (body.worker_address !== undefined) allowed.worker_address = body.worker_address;
+  if (body.submission_url !== undefined) allowed.submission_url = body.submission_url;
+
   const { data, error } = await supabase
     .from("marketplace_tasks")
-    .update(body)
+    .update(allowed)
     .eq("id", id)
     .select()
     .single();

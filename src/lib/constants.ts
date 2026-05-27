@@ -19,7 +19,6 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 export const TIMEFRAMES = [
-  { label: '1H', value: '1' },
   { label: '24H', value: '1' },
   { label: '7D', value: '7' },
   { label: '1M', value: '30' },
