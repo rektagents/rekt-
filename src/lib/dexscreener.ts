@@ -174,6 +174,26 @@ function pairToCoinDetail(pair: DexPair): CoinDetail {
   };
 }
 
+// Fetch token profile icons as a fallback map
+async function getTokenIconMap(): Promise<Map<string, string>> {
+  const cached = getFromCache<Map<string, string>>('icon-map');
+  if (cached) return cached;
+
+  try {
+    const profiles = await fetchDex<DexTokenProfile[]>('/token-profiles/latest/v1');
+    const map = new Map<string, string>();
+    for (const p of profiles || []) {
+      if (p.icon && p.tokenAddress) {
+        map.set(`${p.chainId}:${p.tokenAddress.toLowerCase()}`, p.icon);
+      }
+    }
+    setCache('icon-map', map);
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
 // Get top pairs for market table (use search for popular tokens)
 export async function getMarketCoins(
   _currency: Currency = 'usd',
@@ -202,10 +222,19 @@ export async function getMarketCoins(
       }
     }
 
+    const iconMap = await getTokenIconMap();
+
     return deduplicatePairs(allPairs)
       .sort((a, b) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
       .slice(0, 50)
-      .map(pairToCoinMarket);
+      .map((pair) => {
+        const coin = pairToCoinMarket(pair);
+        if (!coin.image) {
+          const key = `${pair.chainId}:${pair.baseToken.address.toLowerCase()}`;
+          coin.image = iconMap.get(key) || '';
+        }
+        return coin;
+      });
   } catch {
     return [];
   }
