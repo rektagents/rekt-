@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   title: "REKT — Crypto Intelligence for Agent Builders",
   description: "Track every DEX token in real-time. Portfolio tracking, price alerts, agent directory, and builder tools. Powered by DexScreener.",
   metadataBase: new URL('https://rektagents.xyz'),
+  icons: {
+    icon: '/wreck.svg',
+  },
   openGraph: {
     title: "REKT — Crypto Intelligence for Agent Builders",
     description: "Track every DEX token in real-time. Portfolio tracking, price alerts, agent directory, and builder tools.",
