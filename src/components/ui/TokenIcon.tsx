@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 
 interface TokenIconProps {
   src?: string;
@@ -26,8 +25,9 @@ export function TokenIcon({ src, alt, symbol, size, className = '' }: TokenIconP
     );
   }
 
+  // eslint-disable-next-line @next/next/no-img-element
   return (
-    <Image
+    <img
       src={src}
       alt={alt}
       width={size}
