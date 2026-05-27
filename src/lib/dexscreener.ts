@@ -10,59 +10,40 @@ import type {
 
 const BASE_URL = 'https://api.dexscreener.com';
 
-// CoinGecko icon cache (long-lived — icons don't change)
-const iconCache = new Map<string, string>();
-const ICON_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-const iconCacheTimestamps = new Map<string, number>();
-
-// CoinGecko platform mapping
-const COINGECKO_PLATFORMS: Record<string, string> = {
-  ethereum: 'ethereum',
-  bsc: 'binance-smart-chain',
-  base: 'base',
-  arbitrum: 'arbitrum-one',
-  polygon: 'polygon-pos',
-  avalanche: 'avalanche',
-  optimism: 'optimistic-ethereum',
-  solana: 'solana',
-  linea: 'linea',
-  scroll: 'scroll',
-  zksync: 'zksync',
-  mantle: 'mantle',
-  blast: 'blast',
-  sonic: 'sonic',
-  bnb: 'binance-smart-chain',
-  cronos: 'cronos',
-  fantom: 'fantom',
-  pulsechain: 'pulsechain',
-};
-
-// Fetch icon from CoinGecko by contract address
+// CoinGecko icon lookup — uses server-side API route to avoid rate limits
 async function getCoinGeckoIcon(chainId: string, address: string): Promise<string> {
-  const key = `${chainId}:${address.toLowerCase()}`;
-  const cached = iconCache.get(key);
-  const ts = iconCacheTimestamps.get(key);
-  if (cached && ts && Date.now() - ts < ICON_CACHE_DURATION) return cached;
-
-  const platform = COINGECKO_PLATFORMS[chainId];
-  if (!platform) return '';
-
   try {
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/coins/${platform}/contract/${address}`,
-      { next: { revalidate: 86400 } } // 24h ISR
-    );
+    const res = await fetch(`/api/icons?chain=${chainId}&address=${address}`);
     if (!res.ok) return '';
     const data = await res.json();
-    const img = data.image?.small || data.image?.thumb || '';
-    if (img) {
-      iconCache.set(key, img);
-      iconCacheTimestamps.set(key, Date.now());
-    }
-    return img;
+    return data.icon || '';
   } catch {
     return '';
   }
+}
+
+// Batch CoinGecko icon lookup
+async function batchGetCoinGeckoIcons(
+  tokens: { chainId: string; address: string }[]
+): Promise<Map<string, string>> {
+  const results = new Map<string, string>();
+  if (tokens.length === 0) return results;
+
+  try {
+    const res = await fetch('/api/icons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokens }),
+    });
+    if (!res.ok) return results;
+    const data = await res.json();
+    for (const [key, icon] of Object.entries(data.icons || {})) {
+      if (icon) results.set(key, icon as string);
+    }
+  } catch {
+    // silently fail
+  }
+  return results;
 }
 
 
@@ -292,16 +273,15 @@ export async function getMarketCoins(
         return coin;
       });
 
-    // Fetch missing icons from CoinGecko
+    // Fetch missing icons from CoinGecko in batch
     const missing = coins.filter((c) => !c.image);
     if (missing.length > 0) {
-      const icons = await Promise.allSettled(
-        missing.map((c) => getCoinGeckoIcon(c.chainId!, c.baseToken!.address))
+      const icons = await batchGetCoinGeckoIcons(
+        missing.map((c) => ({ chainId: c.chainId!, address: c.baseToken!.address }))
       );
-      missing.forEach((coin, i) => {
-        if (icons[i].status === 'fulfilled' && icons[i].value) {
-          coin.image = icons[i].value;
-        }
+      missing.forEach((coin) => {
+        const key = `${coin.chainId}:${coin.baseToken!.address.toLowerCase()}`;
+        if (icons.has(key)) coin.image = icons.get(key)!;
       });
     }
 
@@ -388,16 +368,15 @@ export async function getTrending(): Promise<TrendingCoin[]> {
       },
     }));
 
-    // Fetch missing icons from CoinGecko
+    // Fetch missing icons from CoinGecko in batch
     const missing = items.filter((t) => !t.item.thumb);
     if (missing.length > 0) {
-      const icons = await Promise.allSettled(
-        missing.map((t) => getCoinGeckoIcon(t.item.chainId!, t.item.tokenAddress!))
+      const icons = await batchGetCoinGeckoIcons(
+        missing.map((t) => ({ chainId: t.item.chainId!, address: t.item.tokenAddress! }))
       );
-      missing.forEach((t, i) => {
-        if (icons[i].status === 'fulfilled' && icons[i].value) {
-          t.item.thumb = icons[i].value;
-        }
+      missing.forEach((t) => {
+        const key = `${t.item.chainId}:${t.item.tokenAddress!.toLowerCase()}`;
+        if (icons.has(key)) t.item.thumb = icons.get(key)!;
       });
     }
 
@@ -430,16 +409,15 @@ export async function searchCoins(query: string): Promise<{ coins: { id: string;
         tokenAddress: p.baseToken.address,
       }));
 
-    // Fetch missing icons from CoinGecko
+    // Fetch missing icons from CoinGecko in batch
     const missing = coins.filter((c) => !c.thumb);
     if (missing.length > 0) {
-      const icons = await Promise.allSettled(
-        missing.map((c) => getCoinGeckoIcon(c.chainId!, c.tokenAddress!))
+      const icons = await batchGetCoinGeckoIcons(
+        missing.map((c) => ({ chainId: c.chainId!, address: c.tokenAddress! }))
       );
-      missing.forEach((c, i) => {
-        if (icons[i].status === 'fulfilled' && icons[i].value) {
-          c.thumb = icons[i].value;
-        }
+      missing.forEach((c) => {
+        const key = `${c.chainId}:${c.tokenAddress!.toLowerCase()}`;
+        if (icons.has(key)) c.thumb = icons.get(key)!;
       });
     }
 
