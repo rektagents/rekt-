@@ -46,7 +46,7 @@ export function AgentTokens() {
       {tokens.map((token) => (
         <Link
           key={token.id}
-          href={`/coins/${token.id}`}
+          href={token.chainId ? `/coins/${token.chainId}/${token.id}` : `/coins/${token.id}`}
           className="bg-black p-5 hover:bg-white/[0.03] transition-colors group"
         >
           <div className="flex items-center gap-3 mb-3">

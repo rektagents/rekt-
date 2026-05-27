@@ -1,3 +1,84 @@
+// DexScreener API types
+export interface DexToken {
+  address: string;
+  name: string;
+  symbol: string;
+}
+
+export interface DexTxns {
+  m5?: { buys: number; sells: number };
+  h1?: { buys: number; sells: number };
+  h6?: { buys: number; sells: number };
+  h24?: { buys: number; sells: number };
+}
+
+export interface DexVolume {
+  m5?: number;
+  h1?: number;
+  h6?: number;
+  h24?: number;
+}
+
+export interface DexPriceChange {
+  m5?: number;
+  h1?: number;
+  h6?: number;
+  h24?: number;
+}
+
+export interface DexLiquidity {
+  usd: number;
+  base: number;
+  quote: number;
+}
+
+export interface DexPairInfo {
+  imageUrl?: string;
+  header?: string;
+  websites?: { url: string; label: string }[];
+  socials?: { url: string; type: string }[];
+  description?: string;
+}
+
+export interface DexPair {
+  chainId: string;
+  dexId: string;
+  url: string;
+  pairAddress: string;
+  labels?: string[];
+  baseToken: DexToken;
+  quoteToken: DexToken;
+  priceNative: string;
+  priceUsd: string;
+  txns: DexTxns;
+  volume: DexVolume;
+  priceChange: DexPriceChange;
+  liquidity: DexLiquidity;
+  fdv: number;
+  marketCap: number;
+  pairCreatedAt: number;
+  info?: DexPairInfo;
+}
+
+export interface DexSearchResult {
+  schemaVersion?: string;
+  pairs: DexPair[];
+}
+
+export interface DexTokenProfile {
+  url: string;
+  chainId: string;
+  tokenAddress: string;
+  icon?: string;
+  header?: string;
+  openGraph?: string;
+  description?: string;
+  links?: { label?: string; type?: string; url: string }[];
+  cto?: boolean;
+  updatedAt?: string;
+}
+
+// App types (backwards-compatible, extended with DexScreener fields)
 export interface CoinMarket {
   id: string;
   symbol: string;
@@ -24,6 +105,14 @@ export interface CoinMarket {
   atl_change_percentage: number;
   atl_date: string;
   last_updated: string;
+  // DexScreener extras
+  chainId?: string;
+  pairAddress?: string;
+  dexId?: string;
+  liquidity?: DexLiquidity;
+  txns?: DexTxns;
+  baseToken?: DexToken;
+  quoteToken?: DexToken;
 }
 
 export interface CoinDetail {
@@ -55,6 +144,19 @@ export interface CoinDetail {
     homepage: string[];
     blockchain_site: string[];
   };
+  // DexScreener extras
+  chainId?: string;
+  pairAddress?: string;
+  dexId?: string;
+  liquidity?: DexLiquidity;
+  fdv?: number;
+  txns?: DexTxns;
+  baseToken?: DexToken;
+  quoteToken?: DexToken;
+  priceChange?: DexPriceChange;
+  volume?: DexVolume;
+  info?: DexPairInfo;
+  pairCreatedAt?: number;
 }
 
 export interface MarketChart {
@@ -83,6 +185,9 @@ export interface TrendingCoin {
     price_btc: number;
     market_cap_rank: number;
     score: number;
+    // DexScreener extras
+    chainId?: string;
+    tokenAddress?: string;
   };
 }
 
@@ -93,6 +198,9 @@ export interface SearchResult {
     symbol: string;
     thumb: string;
     market_cap_rank: number;
+    // DexScreener extras
+    chainId?: string;
+    tokenAddress?: string;
   }[];
 }
 

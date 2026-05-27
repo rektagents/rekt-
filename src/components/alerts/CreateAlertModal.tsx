@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { searchCoins } from '@/lib/coingecko';
+import { searchCoins } from '@/lib/dexscreener';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Modal } from '@/components/ui/Modal';
 import Image from 'next/image';
@@ -45,7 +45,7 @@ export function CreateAlertModal({ isOpen, onClose, onCreate }: CreateAlertModal
     if (!selectedCoin || !targetPrice) return;
 
     onCreate({
-      coinId: selectedCoin.id,
+      coinId: selectedCoin.id, // chainId:address format
       coinName: selectedCoin.name,
       coinSymbol: selectedCoin.symbol,
       coinImage: selectedCoin.thumb,
@@ -65,12 +65,12 @@ export function CreateAlertModal({ isOpen, onClose, onCreate }: CreateAlertModal
       <form onSubmit={handleSubmit} className="space-y-4">
         {!selectedCoin ? (
           <div>
-            <label className="block text-[10px] text-white/30 font-mono uppercase tracking-widest mb-2">Search Coin</label>
+            <label className="block text-[10px] text-white/30 font-mono uppercase tracking-widest mb-2">Search Token</label>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Bitcoin, Ethereum..."
+              placeholder="Bitcoin, Ethereum, PEPE..."
               className="w-full bg-transparent text-white text-sm font-mono px-4 py-2.5 border border-white/10 focus:outline-none focus:border-white/30 placeholder-white/20"
             />
             {searchResults?.coins && searchResults.coins.length > 0 && (
@@ -85,15 +85,22 @@ export function CreateAlertModal({ isOpen, onClose, onCreate }: CreateAlertModal
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.03] transition-colors"
                   >
-                    <Image
-                      src={coin.thumb}
-                      alt={coin.name}
-                      width={20}
-                      height={20}
-                      className="rounded-full"
-                    />
+                    {coin.thumb ? (
+                      <Image
+                        src={coin.thumb}
+                        alt={coin.name}
+                        width={20}
+                        height={20}
+                        className="rounded-full"
+                      />
+                    ) : (
+                      <span className="w-5 h-5 rounded-full bg-white/10 shrink-0" />
+                    )}
                     <span className="text-white text-sm">{coin.name}</span>
                     <span className="text-white/30 text-xs uppercase font-mono">{coin.symbol}</span>
+                    {coin.chainId && (
+                      <span className="ml-auto text-[10px] text-white/15 uppercase font-mono">{coin.chainId}</span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -101,13 +108,17 @@ export function CreateAlertModal({ isOpen, onClose, onCreate }: CreateAlertModal
           </div>
         ) : (
           <div className="flex items-center gap-3 p-3 border border-white/10 bg-white/[0.02]">
-            <Image
-              src={selectedCoin.thumb}
-              alt={selectedCoin.name}
-              width={24}
-              height={24}
-              className="rounded-full"
-            />
+            {selectedCoin.thumb ? (
+              <Image
+                src={selectedCoin.thumb}
+                alt={selectedCoin.name}
+                width={24}
+                height={24}
+                className="rounded-full"
+              />
+            ) : (
+              <span className="w-6 h-6 rounded-full bg-white/10" />
+            )}
             <div>
               <div className="text-white text-sm">{selectedCoin.name}</div>
               <div className="text-[10px] text-white/30 uppercase font-mono">{selectedCoin.symbol}</div>

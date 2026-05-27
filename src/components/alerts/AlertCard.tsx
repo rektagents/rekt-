@@ -18,7 +18,7 @@ export function AlertCard({ alert, onToggle, onRemove }: AlertCardProps) {
   return (
     <div className="p-5">
       <div className="flex items-center gap-3 mb-4">
-        <Link href={`/coins/${alert.coinId}`} className="flex items-center gap-3">
+        <Link href={`/coins/${alert.coinId.replace(':', '/')}`} className="flex items-center gap-3">
           <Image
             src={alert.coinImage}
             alt={alert.coinName}

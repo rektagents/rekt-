@@ -63,7 +63,7 @@ export function HoldingsList({ holdings, onRemove }: HoldingsListProps) {
             >
               <td className="py-4 px-4">
                 <Link
-                  href={`/coins/${holding.coinId}`}
+                  href={`/coins/${holding.coinId.replace(':', '/')}`}
                   className="flex items-center gap-3"
                 >
                   <Image

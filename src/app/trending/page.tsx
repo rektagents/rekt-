@@ -38,7 +38,7 @@ export default function TrendingPage() {
             gainers & losers
           </span>
         </div>
-        <TopMovers selectedChain={selectedChain} />
+        <TopMovers />
       </section>
     </div>
   );

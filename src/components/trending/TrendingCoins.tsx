@@ -2,9 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { getTrending, getCoinsByCategory, CHAIN_CATEGORIES } from '@/lib/coingecko';
-import { REFRESH_INTERVALS } from '@/lib/constants';
+import { useTrending } from '@/hooks/useTrending';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { ChainId } from '@/types/chain';
 
@@ -13,32 +11,7 @@ interface TrendingCoinsProps {
 }
 
 export function TrendingCoins({ selectedChain }: TrendingCoinsProps) {
-  const { data, isLoading } = useQuery({
-    queryKey: ['trending', selectedChain],
-    queryFn: async () => {
-      if (selectedChain) {
-        const category = CHAIN_CATEGORIES[selectedChain];
-        if (category) {
-          const coins = await getCoinsByCategory(category, 'usd', 1, 10);
-          return {
-            coins: coins.map((coin) => ({
-              item: {
-                id: coin.id,
-                name: coin.name,
-                symbol: coin.symbol,
-                thumb: coin.image,
-                market_cap_rank: coin.market_cap_rank,
-                score: 0,
-              },
-            })),
-          };
-        }
-      }
-      return getTrending();
-    },
-    staleTime: REFRESH_INTERVALS.trending,
-    refetchInterval: REFRESH_INTERVALS.trending,
-  });
+  const { data, isLoading } = useTrending();
 
   if (isLoading) {
     return (
@@ -54,44 +27,56 @@ export function TrendingCoins({ selectedChain }: TrendingCoinsProps) {
     );
   }
 
-  if (!data?.coins || data.coins.length === 0) {
+  const items = data || [];
+  const filtered = selectedChain
+    ? items.filter((t) => t.item.chainId === selectedChain)
+    : items;
+
+  if (filtered.length === 0) {
     return (
       <div className="text-center py-8 text-white/30 font-mono text-sm border border-white/10">
-        No trending coins found {selectedChain ? 'for this chain' : ''}
+        No trending tokens found {selectedChain ? 'for this chain' : ''}
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px border border-white/10 bg-white/10">
-      {data.coins.slice(0, 8).map((item) => (
-        <Link
-          key={item.item.id}
-          href={`/coins/${item.item.id}`}
-          className="bg-black p-5 hover:bg-white/[0.03] transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <Image
-              src={item.item.thumb}
-              alt={item.item.name}
-              width={28}
-              height={28}
-              className="rounded-full"
-            />
-            <div>
-              <div className="text-sm font-medium text-white">{item.item.name}</div>
-              <div className="text-[11px] text-white/30 uppercase font-mono">
-                {item.item.symbol}
+      {filtered.slice(0, 8).map((item) => {
+        const href = item.item.chainId && item.item.tokenAddress
+          ? `/coins/${item.item.chainId}/${item.item.tokenAddress}`
+          : '#';
+        return (
+          <Link
+            key={item.item.id}
+            href={href}
+            className="bg-black p-5 hover:bg-white/[0.03] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              {item.item.thumb ? (
+                <Image
+                  src={item.item.thumb}
+                  alt={item.item.name}
+                  width={28}
+                  height={28}
+                  className="rounded-full"
+                />
+              ) : (
+                <span className="w-7 h-7 rounded-full bg-white/10 shrink-0" />
+              )}
+              <div>
+                <div className="text-sm font-medium text-white truncate max-w-[140px]">{item.item.name}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-white/30 uppercase font-mono">{item.item.symbol}</span>
+                  {item.item.chainId && (
+                    <span className="text-[9px] text-white/15 uppercase font-mono border border-white/5 px-1">{item.item.chainId}</span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          {item.item.market_cap_rank && (
-            <div className="mt-3 text-[11px] text-white/20 font-mono">
-              Rank #{item.item.market_cap_rank}
-            </div>
-          )}
-        </Link>
-      ))}
+          </Link>
+        );
+      })}
     </div>
   );
 }

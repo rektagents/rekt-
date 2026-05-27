@@ -5,19 +5,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { clsx } from 'clsx';
 import { useQuery } from '@tanstack/react-query';
-import { getMarketCoins, getCoinsByCategory, CHAIN_CATEGORIES } from '@/lib/coingecko';
+import { getMarketCoins } from '@/lib/dexscreener';
 import { useCurrency } from '@/context/CurrencyContext';
-import { REFRESH_INTERVALS, PAGE_SIZE } from '@/lib/constants';
+import { REFRESH_INTERVALS } from '@/lib/constants';
 import { formatCurrency, formatPercentage, formatLargeNumber } from '@/lib/formatters';
-import { SparklineChart } from '@/components/ui/SparklineChart';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import type { CoinMarket } from '@/types/coin';
-import type { ChainId } from '@/types/chain';
 
 type SortKey = 'market_cap_rank' | 'current_price' | 'price_change_percentage_24h' | 'market_cap' | 'total_volume';
 
 interface CoinTableProps {
-  selectedChain?: ChainId | null;
+  selectedChain?: string | null;
 }
 
 export function CoinTable({ selectedChain }: CoinTableProps) {
@@ -26,16 +24,9 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('market_cap_rank');
   const [sortAsc, setSortAsc] = useState(true);
 
-  const category = selectedChain ? CHAIN_CATEGORIES[selectedChain] : undefined;
-
   const { data: coins, isLoading, error } = useQuery({
-    queryKey: ['coins', currency, page, category],
-    queryFn: () => {
-      if (category) {
-        return getCoinsByCategory(category, currency, page, PAGE_SIZE);
-      }
-      return getMarketCoins(currency, page, PAGE_SIZE);
-    },
+    queryKey: ['coins', currency, page, selectedChain],
+    queryFn: () => getMarketCoins(currency, page),
     staleTime: REFRESH_INTERVALS.market,
     refetchInterval: REFRESH_INTERVALS.market,
   });
@@ -79,12 +70,11 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
             <tr className="border-b border-white/10">
               {[
                 { key: 'market_cap_rank' as SortKey, label: '#', align: 'left' },
-                { key: null, label: 'Coin', align: 'left' },
+                { key: null, label: 'Token', align: 'left' },
                 { key: 'current_price' as SortKey, label: 'Price', align: 'right' },
                 { key: 'price_change_percentage_24h' as SortKey, label: '24h %', align: 'right' },
                 { key: 'market_cap' as SortKey, label: 'Market Cap', align: 'right', hide: 'md' },
                 { key: 'total_volume' as SortKey, label: 'Volume', align: 'right', hide: 'lg' },
-                { key: null, label: 'Last 7 Days', align: 'right', hide: 'xl' },
               ].map((col) => (
                 <th
                   key={col.label}
@@ -94,8 +84,7 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
                     col.align === 'right' ? 'text-right' : 'text-left',
                     col.key && 'cursor-pointer hover:text-white/60',
                     col.hide === 'md' && 'hidden md:table-cell',
-                    col.hide === 'lg' && 'hidden lg:table-cell',
-                    col.hide === 'xl' && 'hidden xl:table-cell'
+                    col.hide === 'lg' && 'hidden lg:table-cell'
                   )}
                 >
                   {col.label}
@@ -109,7 +98,7 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="py-4 px-4">
+                <td colSpan={6} className="py-4 px-4">
                   <TableSkeleton />
                 </td>
               </tr>
@@ -145,24 +134,36 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
 
 function CoinRow({ coin, currency }: { coin: CoinMarket; currency: string }) {
   const change24h = coin.price_change_percentage_24h;
+  const href = coin.chainId && coin.baseToken
+    ? `/coins/${coin.chainId}/${coin.baseToken.address}`
+    : `/coins/${coin.pairAddress || coin.id}`;
 
   return (
     <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
       <td className="py-4 px-4 text-xs text-white/30 font-mono">
-        {coin.market_cap_rank}
+        {coin.market_cap_rank || '—'}
       </td>
       <td className="py-4 px-4">
-        <Link href={`/coins/${coin.id}`} className="flex items-center gap-3">
-          <Image
-            src={coin.image}
-            alt={coin.name}
-            width={28}
-            height={28}
-            className="rounded-full"
-          />
+        <Link href={href} className="flex items-center gap-3">
+          {coin.image ? (
+            <Image
+              src={coin.image}
+              alt={coin.name}
+              width={28}
+              height={28}
+              className="rounded-full"
+            />
+          ) : (
+            <span className="w-7 h-7 rounded-full bg-white/10 shrink-0" />
+          )}
           <div>
             <div className="text-sm font-medium text-white">{coin.name}</div>
-            <div className="text-[11px] text-white/30 uppercase font-mono">{coin.symbol}</div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-white/30 uppercase font-mono">{coin.symbol}</span>
+              {coin.chainId && (
+                <span className="text-[9px] text-white/15 uppercase font-mono border border-white/5 px-1">{coin.chainId}</span>
+              )}
+            </div>
           </div>
         </Link>
       </td>
@@ -181,17 +182,10 @@ function CoinRow({ coin, currency }: { coin: CoinMarket; currency: string }) {
         </span>
       </td>
       <td className="py-4 px-4 text-right text-xs text-white/40 font-mono tabular-nums hidden md:table-cell">
-        {formatLargeNumber(coin.market_cap)}
+        {coin.market_cap > 0 ? formatLargeNumber(coin.market_cap) : '—'}
       </td>
       <td className="py-4 px-4 text-right text-xs text-white/40 font-mono tabular-nums hidden lg:table-cell">
-        {formatLargeNumber(coin.total_volume)}
-      </td>
-      <td className="py-4 px-4 text-right hidden xl:table-cell">
-        {coin.sparkline_in_7d?.price && (
-          <div className="flex justify-end">
-            <SparklineChart data={coin.sparkline_in_7d.price} />
-          </div>
-        )}
+        {coin.total_volume > 0 ? formatLargeNumber(coin.total_volume) : '—'}
       </td>
     </tr>
   );

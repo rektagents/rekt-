@@ -1,7 +1,7 @@
 'use client';
 
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatCurrency, formatLargeNumber, formatSupply } from '@/lib/formatters';
+import { formatCurrency, formatLargeNumber } from '@/lib/formatters';
 import type { CoinDetail } from '@/types/coin';
 
 interface CoinDetailStatsProps {
@@ -9,41 +9,40 @@ interface CoinDetailStatsProps {
 }
 
 export function CoinDetailStats({ coin }: CoinDetailStatsProps) {
-  const { currency } = useCurrency();
   const md = coin.market_data;
 
   const stats = [
     {
       label: 'Market Cap',
-      value: formatLargeNumber(md.market_cap[currency] || 0),
+      value: formatLargeNumber(md.market_cap?.usd || 0),
     },
     {
       label: '24h Volume',
-      value: formatLargeNumber(md.total_volume[currency] || 0),
+      value: formatLargeNumber(md.total_volume?.usd || 0),
     },
     {
-      label: '24h High',
-      value: formatCurrency(md.high_24h[currency] || 0, currency),
+      label: 'FDV',
+      value: coin.fdv ? formatLargeNumber(coin.fdv) : '—',
     },
     {
-      label: '24h Low',
-      value: formatCurrency(md.low_24h[currency] || 0, currency),
+      label: 'Liquidity',
+      value: coin.liquidity?.usd ? formatLargeNumber(coin.liquidity.usd) : '—',
     },
     {
-      label: 'All-Time High',
-      value: formatCurrency(md.ath[currency] || 0, currency),
+      label: '24h Change',
+      value: coin.priceChange?.h24 !== undefined ? `${coin.priceChange.h24 >= 0 ? '+' : ''}${coin.priceChange.h24.toFixed(2)}%` : '—',
     },
     {
-      label: 'All-Time Low',
-      value: formatCurrency(md.atl[currency] || 0, currency),
+      label: '1h Change',
+      value: coin.priceChange?.h1 !== undefined ? `${coin.priceChange.h1 >= 0 ? '+' : ''}${coin.priceChange.h1.toFixed(2)}%` : '—',
     },
     {
-      label: 'Circulating Supply',
-      value: formatSupply(md.circulating_supply),
+      label: 'DEX',
+      value: coin.dexId || '—',
     },
     {
-      label: 'Max Supply',
-      value: formatSupply(md.max_supply),
+      label: 'Chain',
+      value: coin.chainId || '—',
     },
   ];
 

@@ -61,20 +61,6 @@ export interface BuilderTool {
   icon: string;
 }
 
-// Featured AI agent tokens on CoinGecko
-export const AGENT_TOKEN_IDS = [
-  'ai16z',
-  'virtuals-protocol',
-  'goatseus-maximus',
-  'zerebro',
-  'act-i-the-ai-prophecy',
-  'bittensor',
-  'render-token',
-  'fetch-ai',
-  'singularitynet',
-  'ocean-protocol',
-];
-
 export const CATEGORY_LABELS: Record<AgentCategory, string> = {
   defi: 'DeFi',
   trading: 'Trading',

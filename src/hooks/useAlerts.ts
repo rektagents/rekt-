@@ -3,12 +3,19 @@
 import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalStorage } from './useLocalStorage';
-import { getSimplePrices } from '@/lib/coingecko';
+import { getSimplePrices } from '@/lib/dexscreener';
 import { REFRESH_INTERVALS } from '@/lib/constants';
 import type { Alert, AlertsData } from '@/types/alerts';
 import type { Currency } from '@/types/coin';
 
 const STORAGE_KEY = 'rekt-alerts';
+
+// Parse "chainId:address" format
+function parseCoinId(coinId: string): { chainId: string; address: string } | null {
+  const parts = coinId.split(':');
+  if (parts.length === 2) return { chainId: parts[0], address: parts[1] };
+  return null;
+}
 
 export function useAlerts(currency: Currency = 'usd') {
   const [alertsData, setAlertsData] = useLocalStorage<AlertsData>(STORAGE_KEY, {
@@ -16,14 +23,17 @@ export function useAlerts(currency: Currency = 'usd') {
     lastUpdated: new Date().toISOString(),
   });
 
-  const coinIds = alertsData.alerts.filter((a) => a.enabled).map((a) => a.coinId);
+  const tokens = alertsData.alerts
+    .filter((a) => a.enabled)
+    .map((a) => parseCoinId(a.coinId))
+    .filter(Boolean) as { chainId: string; address: string }[];
 
   const { data: prices } = useQuery({
-    queryKey: ['alertPrices', coinIds.join(','), currency],
-    queryFn: () => getSimplePrices(coinIds, currency),
+    queryKey: ['alertPrices', tokens.map((t) => `${t.chainId}:${t.address}`).join(','), currency],
+    queryFn: () => getSimplePrices(tokens),
     staleTime: REFRESH_INTERVALS.alerts,
     refetchInterval: REFRESH_INTERVALS.alerts,
-    enabled: coinIds.length > 0,
+    enabled: tokens.length > 0,
   });
 
   const addAlert = useCallback(
@@ -76,7 +86,7 @@ export function useAlerts(currency: Currency = 'usd') {
 
   const alertsWithPrices = alertsData.alerts.map((a) => {
     const priceData = prices?.[a.coinId];
-    const currentPrice = priceData?.[currency] || a.currentPrice;
+    const currentPrice = priceData?.usd || a.currentPrice;
 
     let shouldTrigger = false;
     if (a.enabled && !a.triggered && prices) {

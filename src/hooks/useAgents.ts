@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMarketCoins } from '@/lib/coingecko';
-import { AGENT_TOKEN_IDS, REFRESH_INTERVALS } from '@/lib/constants';
+import { getMarketCoins } from '@/lib/dexscreener';
+import { REFRESH_INTERVALS } from '@/lib/constants';
 import type { Currency } from '@/types/coin';
 import type { Agent } from '@/types/agent';
 
@@ -133,12 +133,11 @@ export function useSubmitReview() {
 export function useAgentTokens(currency: Currency = 'usd') {
   return useQuery({
     queryKey: ['agentTokens', currency],
-    queryFn: () => getMarketCoins(currency, 1, 100),
+    queryFn: () => getMarketCoins(currency, 1),
     staleTime: REFRESH_INTERVALS.market,
     refetchInterval: REFRESH_INTERVALS.market,
     select: (data) => {
       return data.filter((coin) =>
-        AGENT_TOKEN_IDS.includes(coin.id) ||
         coin.name.toLowerCase().includes('ai') ||
         coin.name.toLowerCase().includes('agent') ||
         coin.symbol.toLowerCase().includes('ai')

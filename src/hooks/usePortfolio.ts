@@ -3,12 +3,19 @@
 import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalStorage } from './useLocalStorage';
-import { getSimplePrices } from '@/lib/coingecko';
+import { getSimplePrices } from '@/lib/dexscreener';
 import { REFRESH_INTERVALS } from '@/lib/constants';
 import type { Holding, PortfolioData } from '@/types/portfolio';
 import type { Currency } from '@/types/coin';
 
 const STORAGE_KEY = 'rekt-portfolio';
+
+// Parse "chainId:address" format
+function parseCoinId(coinId: string): { chainId: string; address: string } | null {
+  const parts = coinId.split(':');
+  if (parts.length === 2) return { chainId: parts[0], address: parts[1] };
+  return null;
+}
 
 export function usePortfolio(currency: Currency = 'usd') {
   const [portfolio, setPortfolio] = useLocalStorage<PortfolioData>(STORAGE_KEY, {
@@ -16,14 +23,16 @@ export function usePortfolio(currency: Currency = 'usd') {
     lastUpdated: new Date().toISOString(),
   });
 
-  const coinIds = portfolio.holdings.map((h) => h.coinId);
+  const tokens = portfolio.holdings
+    .map((h) => parseCoinId(h.coinId))
+    .filter(Boolean) as { chainId: string; address: string }[];
 
   const { data: prices } = useQuery({
-    queryKey: ['portfolioPrices', coinIds.join(','), currency],
-    queryFn: () => getSimplePrices(coinIds, currency),
+    queryKey: ['portfolioPrices', tokens.map((t) => `${t.chainId}:${t.address}`).join(','), currency],
+    queryFn: () => getSimplePrices(tokens),
     staleTime: REFRESH_INTERVALS.portfolio,
     refetchInterval: REFRESH_INTERVALS.portfolio,
-    enabled: coinIds.length > 0,
+    enabled: tokens.length > 0,
   });
 
   const addHolding = useCallback(
@@ -65,7 +74,7 @@ export function usePortfolio(currency: Currency = 'usd') {
 
     return portfolio.holdings.map((h) => {
       const priceData = prices[h.coinId];
-      const currentPrice = priceData?.[currency] || 0;
+      const currentPrice = priceData?.usd || 0;
       const currentValue = h.quantity * currentPrice;
       const costBasis = h.quantity * h.buyPrice;
       const pnl = currentValue - costBasis;
@@ -79,7 +88,7 @@ export function usePortfolio(currency: Currency = 'usd') {
         pnlPercentage,
       };
     });
-  }, [portfolio.holdings, prices, currency]);
+  }, [portfolio.holdings, prices]);
 
   const holdingsWithPrices = getHoldingsWithPrices();
 

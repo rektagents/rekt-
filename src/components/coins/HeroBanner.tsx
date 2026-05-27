@@ -1,18 +1,17 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getMarketCoins, getGlobalData } from '@/lib/coingecko';
+import { getMarketCoins, getGlobalData } from '@/lib/dexscreener';
 import { useCurrency } from '@/context/CurrencyContext';
 import { formatCurrency, formatLargeNumber } from '@/lib/formatters';
-import { SparklineChart } from '@/components/ui/SparklineChart';
-import Image from 'next/image';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function HeroBanner() {
   const { currency } = useCurrency();
   const { data: coins, isLoading: coinsLoading } = useQuery({
     queryKey: ['heroCoins', currency],
-    queryFn: () => getMarketCoins(currency, 1, 5),
+    queryFn: () => getMarketCoins(currency, 1),
     staleTime: 30_000,
   });
   const { data: global, isLoading: globalLoading } = useQuery({
@@ -21,7 +20,7 @@ export function HeroBanner() {
     staleTime: 30_000,
   });
 
-  const btc = coins?.find((c) => c.id === 'bitcoin');
+  const btc = coins?.find((c) => c.symbol === 'BTC' || c.symbol === 'WBTC');
   const isLoading = coinsLoading || globalLoading;
 
   return (
@@ -46,7 +45,7 @@ export function HeroBanner() {
       </p>
 
       <div className="fade-up-3.5 flex flex-wrap gap-2 mb-10">
-        {['10,000+ tokens', '15s refresh', 'Agent directory', 'Portfolio tracking'].map(
+        {['Every DEX token', '15s refresh', 'Agent directory', 'Portfolio tracking'].map(
           (tag) => (
             <span
               key={tag}
@@ -86,10 +85,10 @@ export function HeroBanner() {
           <div className="border-b border-white/10 px-5 py-4 flex items-center justify-between">
             <div>
               <p className="text-white text-sm font-semibold tracking-tight">
-                Bitcoin Snapshot
+                Top Token Snapshot
               </p>
               <p className="text-white/30 text-xs font-mono mt-1">
-                Top asset by market cap
+                Powered by DexScreener
               </p>
             </div>
             <span className="text-white/20 text-[10px] border border-white/10 px-2 py-1 font-mono uppercase tracking-widest">
@@ -106,13 +105,17 @@ export function HeroBanner() {
           ) : btc ? (
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <Image
-                  src={btc.image}
-                  alt="Bitcoin"
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                />
+                {btc.image ? (
+                  <Image
+                    src={btc.image}
+                    alt={btc.name}
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <span className="w-8 h-8 rounded-full bg-white/10" />
+                )}
                 <div>
                   <div className="text-white font-bold text-xl">
                     {formatCurrency(btc.current_price, currency)}
@@ -129,16 +132,6 @@ export function HeroBanner() {
                   </div>
                 </div>
               </div>
-
-              {btc.sparkline_in_7d?.price && (
-                <div className="mb-4">
-                  <SparklineChart
-                    data={btc.sparkline_in_7d.price}
-                    width={280}
-                    height={60}
-                  />
-                </div>
-              )}
 
               <div className="border border-white/5 grid grid-cols-2 gap-px bg-white/5">
                 <div className="bg-black px-3 py-3">
@@ -159,14 +152,20 @@ export function HeroBanner() {
                 </div>
               </div>
 
-              <Link
-                href="/coins/bitcoin"
-                className="mt-4 block text-center border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-white/55 hover:text-white hover:border-white/30 transition-colors font-mono"
-              >
-                view details →
-              </Link>
+              {btc.chainId && btc.baseToken && (
+                <Link
+                  href={`/coins/${btc.chainId}/${btc.baseToken.address}`}
+                  className="mt-4 block text-center border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-white/55 hover:text-white hover:border-white/30 transition-colors font-mono"
+                >
+                  view details →
+                </Link>
+              )}
             </div>
-          ) : null}
+          ) : (
+            <div className="p-6 text-center text-white/20 font-mono text-sm">
+              Loading market data...
+            </div>
+          )}
         </div>
 
         {/* Terminal mockup */}
@@ -182,8 +181,8 @@ export function HeroBanner() {
               <span className="text-white/30">$</span>{' '}
               <span className="text-white">rekt watch --pair BTC/USD</span>
             </p>
-            <p className="text-white/40">Connecting to market feed...</p>
-            <p className="text-white/40">Subscribing to 10,000+ token pairs</p>
+            <p className="text-white/40">Connecting to DexScreener feed...</p>
+            <p className="text-white/40">Subscribing to all DEX pairs</p>
             <p className="text-white/40">Agent network: 4 active agents online</p>
             <p className="text-white/40">Portfolio sync: 3 wallets tracked</p>
             <p className="text-white">

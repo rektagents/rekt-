@@ -1,6 +1,4 @@
-export const API_BASE_URL = 'https://api.coingecko.com/api/v3';
-
-export const COIN_IMAGE_BASE = 'https://assets.coingecko.com/coins/images';
+export const API_BASE_URL = 'https://api.dexscreener.com';
 
 export const REFRESH_INTERVALS = {
   market: 30_000,
@@ -30,15 +28,11 @@ export const TIMEFRAMES = [
   { label: 'ALL', value: 'max' },
 ] as const;
 
-export const AGENT_TOKEN_IDS = [
-  'ai16z',
-  'virtuals-protocol',
-  'goatseus-maximus',
-  'zerebro',
-  'act-i-the-ai-prophecy',
-  'bittensor',
-  'render-token',
-  'fetch-ai',
-  'singularitynet',
-  'ocean-protocol',
+// Agent tokens (chain:address format for DexScreener)
+export const AGENT_TOKENS = [
+  { chainId: 'solana', address: 'HeLp6NuQkmYB1pYV2vfEqBKpHhZqEUYjEXkXpNjKLASw', symbol: 'AI16Z', name: 'ai16z' },
+  { chainId: 'ethereum', address: '0x44ff8620b8cA30902395A7bD3F2407e1A091BF73', symbol: 'VIRTUAL', name: 'Virtuals Protocol' },
+  { chainId: 'solana', address: 'z3dn17yLaGMKffVogeFHQ9zWVcXgqgfX7SBR9CyGRA', symbol: 'GOAT', name: 'Goatseus Maximus' },
+  { chainId: 'solana', address: '8x5VqbHA8D7NkD52uNuS5nnt3PwApspXJHApYghjVi4', symbol: 'ZEREBRO', name: 'Zerebro' },
+  { chainId: 'solana', address: 'GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump', symbol: 'ACT', name: 'ACT I' },
 ];

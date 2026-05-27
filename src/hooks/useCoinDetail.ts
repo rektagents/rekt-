@@ -1,25 +1,24 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getCoinDetail, getCoinMarketChart } from '@/lib/coingecko';
+import { getCoinDetail, getTokenPairs } from '@/lib/dexscreener';
 import { REFRESH_INTERVALS } from '@/lib/constants';
-import type { Currency, TimeFrame } from '@/types/coin';
 
-export function useCoinDetail(id: string) {
+export function useCoinDetail(chainId: string, address: string) {
   return useQuery({
-    queryKey: ['coin', id],
-    queryFn: () => getCoinDetail(id),
+    queryKey: ['coin', chainId, address],
+    queryFn: () => getCoinDetail(chainId, address),
     staleTime: REFRESH_INTERVALS.detail,
     refetchInterval: REFRESH_INTERVALS.detail,
-    enabled: !!id,
+    enabled: !!chainId && !!address,
   });
 }
 
-export function useCoinChart(id: string, currency: Currency = 'usd', days: TimeFrame = '7') {
+export function useCoinPairs(chainId: string, address: string) {
   return useQuery({
-    queryKey: ['coinChart', id, currency, days],
-    queryFn: () => getCoinMarketChart(id, currency, days),
+    queryKey: ['coinPairs', chainId, address],
+    queryFn: () => getTokenPairs(chainId, address),
     staleTime: REFRESH_INTERVALS.detail,
-    enabled: !!id,
+    enabled: !!chainId && !!address,
   });
 }

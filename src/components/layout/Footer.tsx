@@ -67,8 +67,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="https://www.coingecko.com" target="_blank" rel="noreferrer" className="text-white/50 hover:text-white text-xs transition-colors underline-hover font-mono">
-                  CoinGecko API
+                <a href="https://dexscreener.com" target="_blank" rel="noreferrer" className="text-white/50 hover:text-white text-xs transition-colors underline-hover font-mono">
+                  DexScreener
                 </a>
               </li>
             </ul>
@@ -103,7 +103,7 @@ export function Footer() {
             </span>
           </div>
           <p className="text-white/20 text-[10px] font-mono">
-            Data by CoinGecko. Not financial advice.
+            Data by DexScreener. Not financial advice.
           </p>
         </div>
       </div>
