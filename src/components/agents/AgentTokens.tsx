@@ -50,13 +50,19 @@ export function AgentTokens() {
           className="bg-black p-5 hover:bg-white/[0.03] transition-colors group"
         >
           <div className="flex items-center gap-3 mb-3">
-            <Image
-              src={token.image}
-              alt={token.name}
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
+            {token.image ? (
+              <Image
+                src={token.image}
+                alt={token.name}
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-mono text-white/40">
+                {token.symbol?.slice(0, 2) || '??'}
+              </div>
+            )}
             <div>
               <div className="text-sm font-medium text-white group-hover:text-white transition-colors">
                 {token.name}
