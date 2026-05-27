@@ -10,6 +10,44 @@ import type {
 
 const BASE_URL = 'https://api.dexscreener.com';
 
+// Static icon registry for popular tokens — instant, no API calls
+const POPULAR_ICONS: Record<string, string> = {
+  // Ethereum
+  'ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2': 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+  'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7': 'https://assets.coingecko.com/coins/images/325/small/Tether.png',
+  'ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 'https://assets.coingecko.com/coins/images/6319/small/usdc.png',
+  'ethereum:0x6b175474e89094c44da98b954eedeac495271d0f': 'https://assets.coingecko.com/coins/images/9956/small/4943.png',
+  'ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599': 'https://assets.coingecko.com/coins/images/7598/small/WBTCLOGO.png',
+  'ethereum:0x514910771af9ca656af840dff83e8264ecf986ca': 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
+  'ethereum:0x1f9840a85d5af5bf1d1762f925bdaddc4201f984': 'https://assets.coingecko.com/coins/images/12504/small/uniswap-logo.jpg',
+  'ethereum:0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9': 'https://assets.coingecko.com/coins/images/12645/small/AAVE.png',
+  'ethereum:0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2': 'https://assets.coingecko.com/coins/images/1389/small/maker.png',
+  'ethereum:0xc00e94cb662c3520282e6f5717214004a7f26888': 'https://assets.coingecko.com/coins/images/8780/small/COMP.png',
+  'ethereum:0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0': 'https://assets.coingecko.com/coins/images/4713/small/polygon-token.png',
+  'ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0': 'https://assets.coingecko.com/coins/images/18753/small/wstETH.png',
+  'ethereum:0xae78736cd615f374d3085123a210448e74fc6393': 'https://assets.coingecko.com/coins/images/20765/small/RPL.png',
+  'ethereum:0x853d955acef822db058eb8505911ed77f175b99e': 'https://assets.coingecko.com/coins/images/13180/small/frax-logo.png',
+  // Base
+  'base:0x532f27101965dd16442e59d40670faf5ebb142e4': 'https://assets.coingecko.com/coins/images/35529/small/1000050750.png',
+  'base:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913': 'https://assets.coingecko.com/coins/images/6319/small/usdc.png',
+  'base:0x4200000000000000000000000000000000000006': 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+  // BSC
+  'bsc:0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c': 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
+  'bsc:0xe9e7cea3dedca5984780bafc599bd69add087d56': 'https://assets.coingecko.com/coins/images/325/small/Tether.png',
+  'bsc:0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d': 'https://assets.coingecko.com/coins/images/6319/small/usdc.png',
+  // Arbitrum
+  'arbitrum:0x82af49447d8a07e3bd95bd0d56f35241523fbab1': 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+  'arbitrum:0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9': 'https://assets.coingecko.com/coins/images/325/small/Tether.png',
+  'arbitrum:0xaf88d065e77c8cc2239327c5edb3a432268e5831': 'https://assets.coingecko.com/coins/images/6319/small/usdc.png',
+  // Solana
+  'solana:So11111111111111111111111111111111111111112': 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
+  'solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': 'https://assets.coingecko.com/coins/images/6319/small/usdc.png',
+  'solana:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': 'https://assets.coingecko.com/coins/images/325/small/Tether.png',
+  // Polygon
+  'polygon:0x2791bca1f2de4661ed88a30c99a7a9449aa84174': 'https://assets.coingecko.com/coins/images/6319/small/usdc.png',
+  'polygon:0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 'https://assets.coingecko.com/coins/images/325/small/Tether.png',
+};
+
 // TrustWallet assets CDN for fallback icons (no API call needed)
 const TRUSTWALLET_CHAIN_MAP: Record<string, string> = {
   ethereum: 'ethereum',
@@ -19,25 +57,14 @@ const TRUSTWALLET_CHAIN_MAP: Record<string, string> = {
   polygon: 'polygon',
   avalanche: 'avalanche',
   optimism: 'optimism',
-  linea: 'linea',
-  scroll: 'scroll',
-  zksync: 'zksync',
-  mantle: 'mantle',
-  blast: 'blast',
-  sonic: 'sonic',
-  bnb: 'smartchain',
-  cronos: 'cronos',
-  fantom: 'fantom',
-  pulsechain: 'pulsechain',
 };
 
 function getFallbackIconUrl(chainId: string, address: string): string {
-  if (chainId === 'solana') {
-    return `https://cdn.jup.ag/icons/${address}.png`;
-  }
+  const key = `${chainId}:${address.toLowerCase()}`;
+  if (POPULAR_ICONS[key]) return POPULAR_ICONS[key];
   const twChain = TRUSTWALLET_CHAIN_MAP[chainId];
   if (!twChain) return '';
-  return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${twChain}/assets/${address}/logo.png`;
+  return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${twChain}/assets/${address.toLowerCase()}/logo.png`;
 }
 
 
