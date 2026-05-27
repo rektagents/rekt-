@@ -66,10 +66,23 @@ async function fetchDex<T>(endpoint: string, retries = 2): Promise<T> {
   throw new Error('Max retries exceeded');
 }
 
+// Deduplicate pairs: keep highest liquidity pair per token (chainId:baseToken.address)
+function deduplicatePairs(pairs: DexPair[]): DexPair[] {
+  const best = new Map<string, DexPair>();
+  for (const pair of pairs) {
+    const key = `${pair.chainId}:${pair.baseToken.address}`;
+    const existing = best.get(key);
+    if (!existing || (pair.liquidity?.usd || 0) > (existing.liquidity?.usd || 0)) {
+      best.set(key, pair);
+    }
+  }
+  return Array.from(best.values());
+}
+
 // Convert DexScreener pair to our CoinMarket format
 function pairToCoinMarket(pair: DexPair): CoinMarket {
   return {
-    id: pair.pairAddress,
+    id: `${pair.chainId}:${pair.baseToken.address}`,
     symbol: pair.baseToken.symbol,
     name: pair.baseToken.name,
     image: pair.info?.imageUrl || '',
@@ -166,8 +179,9 @@ export async function getMarketCoins(
 
   try {
     const result = await fetchDex<DexSearchResult>(`/latest/dex/search?q=${q}`);
-    const pairs = (result.pairs || [])
-      .filter((p) => p.priceUsd && parseFloat(p.priceUsd) > 0)
+    const pairs = deduplicatePairs(
+      (result.pairs || []).filter((p) => p.priceUsd && parseFloat(p.priceUsd) > 0)
+    )
       .sort((a, b) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
       .slice(0, 30);
     return pairs.map(pairToCoinMarket);
@@ -193,8 +207,9 @@ export async function getTopTokens(): Promise<CoinMarket[]> {
   // Fallback: just get a search-based list
   try {
     const result = await fetchDex<DexSearchResult>('/latest/dex/search?q=usdt');
-    return (result.pairs || [])
-      .filter((p) => p.priceUsd && parseFloat(p.priceUsd) > 0)
+    return deduplicatePairs(
+      (result.pairs || []).filter((p) => p.priceUsd && parseFloat(p.priceUsd) > 0)
+    )
       .sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0))
       .slice(0, 50)
       .map(pairToCoinMarket);
@@ -349,30 +364,22 @@ export async function getGlobalData(): Promise<{
 // Helper: get top movers (biggest gainers/losers)
 export async function getTopMovers(): Promise<{ gainers: CoinMarket[]; losers: CoinMarket[] }> {
   const queries = ['sol', 'eth', 'meme', 'ai', 'defi'];
-  const allPairs: CoinMarket[] = [];
+  const rawPairs: DexPair[] = [];
 
   await Promise.allSettled(
     queries.map(async (q) => {
       try {
         const result = await fetchDex<DexSearchResult>(`/latest/dex/search?q=${q}`);
         const pairs = (result.pairs || [])
-          .filter((p) => p.priceUsd && parseFloat(p.priceUsd) > 0 && p.volume?.h24 && p.volume.h24 > 1000)
-          .map(pairToCoinMarket);
-        allPairs.push(...pairs);
+          .filter((p) => p.priceUsd && parseFloat(p.priceUsd) > 0 && p.volume?.h24 && p.volume.h24 > 1000);
+        rawPairs.push(...pairs);
       } catch {
         // Skip
       }
     })
   );
 
-  // Deduplicate by pairAddress
-  const seen = new Set<string>();
-  const unique = allPairs.filter((p) => {
-    const addr = (p as CoinMarket & { pairAddress?: string }).pairAddress;
-    if (!addr || seen.has(addr)) return false;
-    seen.add(addr);
-    return true;
-  });
+  const unique = deduplicatePairs(rawPairs).map(pairToCoinMarket);
 
   const sorted = [...unique].sort(
     (a, b) => (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0)
