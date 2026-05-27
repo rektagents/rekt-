@@ -86,12 +86,6 @@ export function Footer() {
                   x / twitter
                 </a>
               </li>
-              <li>
-                <a href="https://github.com/kenabestilla/rekt-" target="_blank" rel="noreferrer" className="text-white/50 hover:text-white text-xs transition-colors underline-hover font-mono flex items-center gap-1.5">
-                  <img src="/wreck.svg" alt="REKT" className="w-3 h-3" />
-                  github
-                </a>
-              </li>
             </ul>
           </div>
         </div>

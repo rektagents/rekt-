@@ -71,7 +71,7 @@ export function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute right-0 top-full mt-1 hidden group-hover:block z-50">
+              <div className="absolute right-0 top-full pt-2 hidden group-hover:block z-50">
                 <div className="bg-black border border-white/20 py-1 min-w-[140px]">
                   {moreLinks.map((link) => (
                     <Link

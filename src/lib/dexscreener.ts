@@ -10,6 +10,34 @@ import type {
 
 const BASE_URL = 'https://api.dexscreener.com';
 
+// TrustWallet assets CDN for fallback icons
+const TRUSTWALLET_CHAIN_MAP: Record<string, string> = {
+  ethereum: 'ethereum',
+  bsc: 'smartchain',
+  base: 'base',
+  arbitrum: 'arbitrum',
+  polygon: 'polygon',
+  avalanche: 'avalanche',
+  optimism: 'optimism',
+  linea: 'linea',
+  scroll: 'scroll',
+  zksync: 'zksync',
+  mantle: 'mantle',
+  blast: 'blast',
+  sonic: 'sonic',
+  bnb: 'smartchain',
+  cronos: 'cronos',
+  fantom: 'fantom',
+  pulsechain: 'pulsechain',
+};
+
+function getFallbackIconUrl(chainId: string, address: string): string {
+  const twChain = TRUSTWALLET_CHAIN_MAP[chainId];
+  if (!twChain) return '';
+  return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${twChain}/assets/${address}/logo.png`;
+}
+
+
 // Simple in-memory cache
 const cache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 15_000; // 15 seconds
@@ -89,11 +117,12 @@ function deduplicatePairs(pairs: DexPair[]): DexPair[] {
 
 // Convert DexScreener pair to our CoinMarket format
 function pairToCoinMarket(pair: DexPair): CoinMarket {
+  const image = pair.info?.imageUrl || getFallbackIconUrl(pair.chainId, pair.baseToken.address);
   return {
     id: `${pair.chainId}:${pair.baseToken.address}`,
     symbol: pair.baseToken.symbol,
     name: pair.baseToken.name,
-    image: pair.info?.imageUrl || '',
+    image,
     current_price: parseFloat(pair.priceUsd) || 0,
     market_cap: pair.marketCap || 0,
     market_cap_rank: 0,
@@ -129,12 +158,13 @@ function pairToCoinMarket(pair: DexPair): CoinMarket {
 // Convert DexScreener pair to CoinDetail format
 function pairToCoinDetail(pair: DexPair): CoinDetail {
   const price = parseFloat(pair.priceUsd) || 0;
+  const imageUrl = pair.info?.imageUrl || getFallbackIconUrl(pair.chainId, pair.baseToken.address);
   return {
     id: pair.pairAddress,
     symbol: pair.baseToken.symbol,
     name: pair.baseToken.name,
     description: { en: pair.info?.description || '' },
-    image: { large: pair.info?.imageUrl || '' },
+    image: { large: imageUrl },
     market_cap_rank: 0,
     market_data: {
       current_price: { usd: price },
@@ -231,7 +261,7 @@ export async function getMarketCoins(
         const coin = pairToCoinMarket(pair);
         if (!coin.image) {
           const key = `${pair.chainId}:${pair.baseToken.address.toLowerCase()}`;
-          coin.image = iconMap.get(key) || '';
+          coin.image = iconMap.get(key) || getFallbackIconUrl(pair.chainId, pair.baseToken.address);
         }
         return coin;
       });
@@ -301,7 +331,7 @@ export async function getTrending(): Promise<TrendingCoin[]> {
         id: `${p.chainId}:${p.tokenAddress}`,
         name: p.description || p.tokenAddress,
         symbol: p.tokenAddress.slice(0, 6),
-        thumb: p.icon || '',
+        thumb: p.icon || getFallbackIconUrl(p.chainId, p.tokenAddress),
         market_cap_rank: 0,
         score: 0,
         price_btc: 0,
@@ -331,7 +361,7 @@ export async function searchCoins(query: string): Promise<{ coins: { id: string;
         id: `${p.chainId}:${p.baseToken.address}`,
         name: p.baseToken.name,
         symbol: p.baseToken.symbol,
-        thumb: p.info?.imageUrl || '',
+        thumb: p.info?.imageUrl || getFallbackIconUrl(p.chainId, p.baseToken.address),
         market_cap_rank: 0,
         chainId: p.chainId,
         tokenAddress: p.baseToken.address,
