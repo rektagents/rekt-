@@ -1,34 +1,42 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-ethers";
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: new URL("../.env.local", import.meta.url) });
+import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import { configVariable, defineConfig } from "hardhat/config";
 
-const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || "0x" + "0".repeat(64);
-const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC || "https://sepolia.base.org";
-const BASE_MAINNET_RPC = process.env.BASE_MAINNET_RPC || "https://mainnet.base.org";
-
-const accounts = PRIVATE_KEY !== "0x" + "0".repeat(64) ? [PRIVATE_KEY] : [];
-
-const config: HardhatUserConfig = {
+export default defineConfig({
+  plugins: [hardhatToolboxMochaEthersPlugin],
   solidity: {
-    version: "0.8.20",
-    settings: {
-      optimizer: { enabled: true, runs: 200 },
+    profiles: {
+      default: {
+        version: "0.8.28",
+      },
+      production: {
+        version: "0.8.28",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     },
   },
   networks: {
+    hardhatBase: {
+      type: "edr-simulated",
+      chainType: "op",
+    },
     baseSepolia: {
       type: "http",
-      url: BASE_SEPOLIA_RPC,
-      accounts,
-      chainId: 84532,
+      chainType: "op",
+      url: configVariable("BASE_SEPOLIA_RPC"),
+      accounts: [configVariable("DEPLOYER_PRIVATE_KEY")],
     },
     base: {
       type: "http",
-      url: BASE_MAINNET_RPC,
-      accounts,
-      chainId: 8453,
+      chainType: "op",
+      url: configVariable("BASE_MAINNET_RPC"),
+      accounts: [configVariable("DEPLOYER_PRIVATE_KEY")],
     },
   },
-};
-
-export default config;
+});

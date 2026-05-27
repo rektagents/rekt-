@@ -2,13 +2,13 @@
 
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
-import { REWARD_DISTRIBUTOR_ADDRESS, REWARD_DISTRIBUTOR_ABI, REKT_TOKEN_ADDRESS, REKT_TOKEN_ABI, isOnChainEnabled } from '@/lib/contracts';
+import { REWARD_DISTRIBUTOR_ADDRESS, rewardDistributorAbi, REKT_TOKEN_ADDRESS, rektTokenAbi, isOnChainEnabled } from '@/lib/contracts';
 
 // Read: Get agent info from contract
 export function useAgentOnChain(wallet?: string) {
   return useReadContract({
-    address: REWARD_DISTRIBUTOR_ADDRESS,
-    abi: REWARD_DISTRIBUTOR_ABI,
+    address: REWARD_DISTRIBUTOR_ADDRESS as `0x${string}`,
+    abi: rewardDistributorAbi.abi,
     functionName: 'getAgent',
     args: wallet ? [wallet as `0x${string}`] : undefined,
     query: { enabled: isOnChainEnabled && !!wallet },
@@ -18,8 +18,8 @@ export function useAgentOnChain(wallet?: string) {
 // Read: Get pending reward from contract
 export function usePendingRewardOnChain(wallet?: string) {
   return useReadContract({
-    address: REWARD_DISTRIBUTOR_ADDRESS,
-    abi: REWARD_DISTRIBUTOR_ABI,
+    address: REWARD_DISTRIBUTOR_ADDRESS as `0x${string}`,
+    abi: rewardDistributorAbi.abi,
     functionName: 'getPendingReward',
     args: wallet ? [wallet as `0x${string}`] : undefined,
     query: { enabled: isOnChainEnabled && !!wallet },
@@ -29,8 +29,8 @@ export function usePendingRewardOnChain(wallet?: string) {
 // Read: Get reward pool balance
 export function useRewardPoolBalance() {
   return useReadContract({
-    address: REWARD_DISTRIBUTOR_ADDRESS,
-    abi: REWARD_DISTRIBUTOR_ABI,
+    address: REWARD_DISTRIBUTOR_ADDRESS as `0x${string}`,
+    abi: rewardDistributorAbi.abi,
     functionName: 'getBalance',
     query: { enabled: isOnChainEnabled },
   });
@@ -44,8 +44,8 @@ export function useRegisterOnChain() {
   const register = () => {
     if (!isOnChainEnabled) return;
     writeContract({
-      address: REWARD_DISTRIBUTOR_ADDRESS,
-      abi: REWARD_DISTRIBUTOR_ABI,
+      address: REWARD_DISTRIBUTOR_ADDRESS as `0x${string}`,
+      abi: rewardDistributorAbi.abi,
       functionName: 'register',
     });
   };
@@ -61,8 +61,8 @@ export function useClaimOnChain() {
   const claim = () => {
     if (!isOnChainEnabled) return;
     writeContract({
-      address: REWARD_DISTRIBUTOR_ADDRESS,
-      abi: REWARD_DISTRIBUTOR_ABI,
+      address: REWARD_DISTRIBUTOR_ADDRESS as `0x${string}`,
+      abi: rewardDistributorAbi.abi,
       functionName: 'claim',
     });
   };

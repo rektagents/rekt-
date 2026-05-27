@@ -4,8 +4,14 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+interface IAgentNFT {
+    function isActive(uint256 tokenId) external view returns (bool);
+    function getTokenId(address agent) external view returns (uint256);
+}
+
 contract RewardDistributor is Ownable {
     IERC20 public immutable rewardToken;
+    IAgentNFT public agentNFT;
 
     struct Agent {
         address wallet;
@@ -28,14 +34,28 @@ contract RewardDistributor is Ownable {
     event RewardClaimed(address indexed agent, uint256 amount, uint256 timestamp);
     event AgentSlashed(address indexed agent, uint256 percent, uint256 newReputation);
     event PoolFunded(address indexed funder, uint256 amount);
+    event AgentNFTSet(address indexed nftContract);
 
     constructor(address _token, address initialOwner) Ownable(initialOwner) {
         rewardToken = IERC20(_token);
     }
 
+    /// @notice Set the AgentNFT contract (links rewards to NFT ownership)
+    function setAgentNFT(address _nftContract) external onlyOwner {
+        agentNFT = IAgentNFT(_nftContract);
+        emit AgentNFTSet(_nftContract);
+    }
+
     /// @notice Agent registers to receive rewards
     function register() external {
         require(!agents[msg.sender].registered, "Already registered");
+
+        // If AgentNFT is set, verify NFT ownership
+        if (address(agentNFT) != address(0)) {
+            uint256 tokenId = agentNFT.getTokenId(msg.sender);
+            require(tokenId > 0, "Must mint AgentNFT first");
+            require(agentNFT.isActive(tokenId), "AgentNFT not active");
+        }
 
         agents[msg.sender] = Agent({
             wallet: msg.sender,
