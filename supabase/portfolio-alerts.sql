@@ -42,9 +42,8 @@ CREATE OR REPLACE VIEW season_leaderboard AS
 SELECT
   wallet,
   COUNT(*) FILTER (WHERE status = 'verified') as tasks_completed,
-  COALESCE(SUM(reward_amount) FILTER (WHERE status = 'verified' AND claimed = true), 0) as total_earned,
-  COALESCE(SUM(reward_amount) FILTER (WHERE status = 'verified' AND claimed = false), 0) as pending_earnings,
+  COALESCE(SUM(reward_amount) FILTER (WHERE status = 'verified'), 0) as total_earned,
   MIN(created_at) as first_active,
-  MAX(updated_at) as last_active
+  MAX(created_at) as last_active
 FROM reward_tasks
 GROUP BY wallet;
