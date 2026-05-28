@@ -124,9 +124,32 @@ export default function GovernancePage() {
 }
 
 function ProposalCard({ proposal }: { proposal: any }) {
+  const { address } = useAccount();
   const statusStyle = STATUS_STYLES[proposal.status] || 'text-white/40 border-white/10';
   const totalVotes = parseFloat(proposal.for_votes || 0) + parseFloat(proposal.against_votes || 0);
   const forPercent = totalVotes > 0 ? (parseFloat(proposal.for_votes || 0) / totalVotes) * 100 : 50;
+  const [voting, setVoting] = useState(false);
+
+  const handleVote = async (support: boolean) => {
+    if (!address) return;
+    setVoting(true);
+    try {
+      await fetch(`/api/governance/proposals?id=${proposal.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          support,
+          voter_address: address,
+        }),
+      });
+      // Refresh the page to show updated votes
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to vote:', err);
+    } finally {
+      setVoting(false);
+    }
+  };
 
   return (
     <div className="border border-white/10 hover:border-white/20 transition-all p-5">
@@ -145,7 +168,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
       <p className="text-white/40 text-xs font-mono mb-4 line-clamp-2">{proposal.description}</p>
 
       {/* Vote bar */}
-      <div className="mb-2">
+      <div className="mb-3">
         <div className="flex items-center justify-between text-[10px] font-mono text-white/40 mb-1">
           <span>For: {parseFloat(proposal.for_votes || 0).toLocaleString()} REKT</span>
           <span>Against: {parseFloat(proposal.against_votes || 0).toLocaleString()} REKT</span>
@@ -157,6 +180,26 @@ function ProposalCard({ proposal }: { proposal: any }) {
           />
         </div>
       </div>
+
+      {/* Vote buttons */}
+      {address && proposal.status === 'active' && (
+        <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
+          <button
+            onClick={() => handleVote(true)}
+            disabled={voting}
+            className="flex-1 px-4 py-2 border border-green-500/30 text-green-400 text-xs font-mono font-bold hover:bg-green-500/10 transition-colors disabled:opacity-50"
+          >
+            {voting ? '...' : 'Vote For'}
+          </button>
+          <button
+            onClick={() => handleVote(false)}
+            disabled={voting}
+            className="flex-1 px-4 py-2 border border-red-500/30 text-red-400 text-xs font-mono font-bold hover:bg-red-500/10 transition-colors disabled:opacity-50"
+          >
+            {voting ? '...' : 'Vote Against'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

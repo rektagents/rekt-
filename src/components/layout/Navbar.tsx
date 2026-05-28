@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { clsx } from 'clsx';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useSearch } from '@/context/SearchContext';
+import { useWallet } from '@/hooks/useWallet';
 import { CURRENCY_SYMBOLS } from '@/lib/constants';
 import type { Currency } from '@/types/coin';
 
@@ -13,6 +14,7 @@ const navLinks = [
   { href: '/', label: 'Market' },
   { href: '/agents', label: 'Agents' },
   { href: '/marketplace', label: 'Marketplace' },
+  { href: '/leaderboard', label: 'Ranks' },
   { href: '/rewards', label: 'Rewards' },
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/governance', label: 'Govern' },
@@ -31,7 +33,9 @@ export function Navbar() {
   const pathname = usePathname();
   const { currency, setCurrency } = useCurrency();
   const { openSearch } = useSearch();
+  const { address, isConnected, connectWallet, disconnect, connectors } = useWallet();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
 
   return (
     <nav className="sticky top-0 z-40 border-b border-white/10 bg-black/80 backdrop-blur-xl">
@@ -94,6 +98,44 @@ export function Navbar() {
 
           {/* Right side controls */}
           <div className="flex items-center gap-2">
+            {/* Wallet button */}
+            {isConnected && address ? (
+              <div className="relative">
+                <button
+                  onClick={() => setWalletOpen(!walletOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-green-400 border border-green-400/30 hover:border-green-400/60 transition-colors text-xs font-mono"
+                >
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
+                  </span>
+                  <span className="hidden sm:inline">{address.slice(0, 4)}...{address.slice(-4)}</span>
+                  <span className="sm:hidden">M</span>
+                </button>
+                {walletOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-50 bg-black border border-white/20 min-w-[160px]">
+                    <button
+                      onClick={() => { disconnect(); setWalletOpen(false); }}
+                      className="w-full px-4 py-2.5 text-left text-xs font-mono text-white/40 hover:text-white hover:bg-white/5 transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  const injected = connectors.find((c: any) => c.id === 'injected');
+                  if (injected) connectWallet();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-white/40 border border-white/10 hover:text-white hover:border-white/30 transition-colors text-xs font-mono"
+              >
+                <span className="hidden sm:inline">Connect</span>
+                <span className="sm:hidden">W</span>
+              </button>
+            )}
+
             {/* Search button */}
             <button
               onClick={openSearch}
@@ -152,23 +194,47 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-white/10 bg-black">
-          <div className="px-6 py-3 space-y-1">
+        <div className="md:hidden border-t border-white/10 bg-black/95 backdrop-blur-xl">
+          <div className="px-6 py-4 space-y-1">
             {[...navLinks, ...moreLinks].map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={clsx(
-                  'block px-3 py-2 text-xs font-mono transition-colors',
+                  'block px-4 py-3 text-sm font-mono transition-colors border-b border-white/5',
                   pathname === link.href
-                    ? 'text-white'
-                    : 'text-white/40 hover:text-white'
+                    ? 'text-white bg-white/[0.03]'
+                    : 'text-white/50 hover:text-white hover:bg-white/[0.02]'
                 )}
               >
                 {link.label}
               </Link>
             ))}
+            {/* Mobile-only controls */}
+            <div className="pt-3 flex items-center gap-3">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value as Currency)}
+                className="flex-1 bg-white/5 text-white/50 text-xs font-mono px-3 py-2.5 border border-white/10 focus:outline-none focus:border-white/30"
+              >
+                {currencies.map((c) => (
+                  <option key={c} value={c} className="bg-black text-white">
+                    {CURRENCY_SYMBOLS[c]} {c.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+              <a
+                href="https://x.com/rektsagents"
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-2.5 text-white/30 hover:text-white transition-colors border border-white/10 hover:border-white/30"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
       )}

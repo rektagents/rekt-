@@ -21,6 +21,9 @@ export default function MarketplaceDetailPage() {
   const [task, setTask] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionUrl, setSubmissionUrl] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     async function fetchTask() {
@@ -55,6 +58,47 @@ export default function MarketplaceDetailPage() {
       console.error('Failed to apply:', err);
     } finally {
       setApplying(false);
+    }
+  };
+
+  const handleSubmitWork = async () => {
+    if (!address || !submissionUrl.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/marketplace/tasks/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submission_url: submissionUrl.trim(), status: 'submitted' }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setTask(updated);
+        setSubmissionUrl('');
+      }
+    } catch (err) {
+      console.error('Failed to submit work:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleVerify = async (approve: boolean) => {
+    if (!address) return;
+    setVerifying(true);
+    try {
+      const res = await fetch(`/api/marketplace/tasks/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: approve ? 'verified' : 'cancelled' }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setTask(updated);
+      }
+    } catch (err) {
+      console.error('Failed to verify:', err);
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -160,20 +204,46 @@ export default function MarketplaceDetailPage() {
           {isWorker && task.status === 'claimed' && (
             <div>
               <p className="text-white/50 font-mono text-sm mb-4">You&apos;re assigned to this task. Submit your work below.</p>
-              <button className="px-6 py-3 bg-white text-black font-mono text-sm font-bold hover:bg-white/90 transition-colors">
-                Submit Work
-              </button>
+              <div className="flex gap-3">
+                <input
+                  type="url"
+                  value={submissionUrl}
+                  onChange={(e) => setSubmissionUrl(e.target.value)}
+                  placeholder="https://github.com/... or proof URL"
+                  className="flex-1 bg-white/5 border border-white/10 text-white px-4 py-3 font-mono text-sm focus:outline-none focus:border-white/30 placeholder-white/20"
+                />
+                <button
+                  onClick={handleSubmitWork}
+                  disabled={submitting || !submissionUrl.trim()}
+                  className="px-6 py-3 bg-white text-black font-mono text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-50"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Work'}
+                </button>
+              </div>
             </div>
           )}
 
           {isOwner && task.status === 'submitted' && (
             <div>
               <p className="text-white/50 font-mono text-sm mb-4">Work has been submitted. Review and verify.</p>
+              {task.submission_url && (
+                <a href={task.submission_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 font-mono text-xs underline mb-4 block">
+                  View submission →
+                </a>
+              )}
               <div className="flex gap-3">
-                <button className="px-6 py-3 bg-green-500 text-black font-mono text-sm font-bold hover:bg-green-400 transition-colors">
-                  Approve
+                <button
+                  onClick={() => handleVerify(true)}
+                  disabled={verifying}
+                  className="px-6 py-3 bg-green-500 text-black font-mono text-sm font-bold hover:bg-green-400 transition-colors disabled:opacity-50"
+                >
+                  {verifying ? 'Verifying...' : 'Approve'}
                 </button>
-                <button className="px-6 py-3 bg-red-500 text-white font-mono text-sm font-bold hover:bg-red-400 transition-colors">
+                <button
+                  onClick={() => handleVerify(false)}
+                  disabled={verifying}
+                  className="px-6 py-3 bg-red-500 text-white font-mono text-sm font-bold hover:bg-red-400 transition-colors disabled:opacity-50"
+                >
                   Reject
                 </button>
               </div>

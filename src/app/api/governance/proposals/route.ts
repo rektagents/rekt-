@@ -63,3 +63,43 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
+
+export async function PATCH(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  const body = await req.json();
+  const { support, voter_address } = body;
+
+  if (support === undefined || !voter_address) {
+    return NextResponse.json({ error: "support and voter_address required" }, { status: 400 });
+  }
+
+  const supabase = getSupabase();
+
+  // Fetch current proposal
+  const { data: proposal, error: fetchError } = await supabase
+    .from("governance_proposals")
+    .select("for_votes, against_votes")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !proposal) {
+    return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
+  }
+
+  // Update vote counts
+  const updateField = support ? "for_votes" : "against_votes";
+  const newVote = parseFloat(proposal[updateField] || 0) + 1000; // 1000 REKT per vote (placeholder)
+
+  const { data, error } = await supabase
+    .from("governance_proposals")
+    .update({ [updateField]: newVote })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
+}

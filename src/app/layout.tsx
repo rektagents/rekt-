@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { PriceTicker } from "@/components/layout/PriceTicker";
 import { Footer } from "@/components/layout/Footer";
 import { SearchOverlay } from "@/components/layout/SearchOverlay";
+import { OnboardingModal } from "@/components/ui/OnboardingModal";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -71,6 +72,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <SearchOverlay />
+          <OnboardingModal />
         </Providers>
       </body>
     </html>
