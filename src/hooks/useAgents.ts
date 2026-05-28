@@ -130,6 +130,32 @@ export function useSubmitReview() {
   });
 }
 
+// Discover agents from Virtuals Protocol (external source)
+export function useDiscoverAgents(options: {
+  category?: string;
+  sort?: string;
+  page?: number;
+  pageSize?: number;
+  query?: string;
+} = {}) {
+  return useQuery<AgentsResponse & { source?: string; meta?: any }>({
+    queryKey: ['discoverAgents', options],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (options.category && options.category !== 'all') params.set('category', options.category);
+      if (options.sort) params.set('sort', options.sort);
+      if (options.page) params.set('page', String(options.page));
+      if (options.pageSize) params.set('pageSize', String(options.pageSize));
+      if (options.query) params.set('q', options.query);
+
+      const res = await fetch(`/api/agents/discover?${params}`);
+      if (!res.ok) throw new Error('Failed to discover agents');
+      return res.json();
+    },
+    staleTime: 5 * 60_000, // 5 minutes
+  });
+}
+
 export function useAgentTokens(currency: Currency = 'usd') {
   return useQuery({
     queryKey: ['agentTokens', currency],

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useAgents, useFeaturedAgents, useSubmitAgent } from '@/hooks/useAgents';
+import { useAgents, useFeaturedAgents, useSubmitAgent, useDiscoverAgents } from '@/hooks/useAgents';
 import { useWallet } from '@/hooks/useWallet';
 import { AgentCard } from '@/components/agents/AgentCard';
 import { AgentTokens } from '@/components/agents/AgentTokens';
@@ -26,12 +26,6 @@ const categories: (AgentCategory | 'all')[] = [
 const PAGE_SIZE = 12;
 
 export default function AgentsPage() {
-  const { data: agentsData, isLoading } = useAgents();
-  const { data: featuredData } = useFeaturedAgents();
-  const submitAgent = useSubmitAgent();
-  const { address } = useWallet();
-  const agents = agentsData?.agents || [];
-  const featured = featuredData?.agents || [];
   const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'users' | 'rating'>('name');
@@ -39,6 +33,39 @@ export default function AgentsPage() {
   const [leaderboardSort, setLeaderboardSort] = useState<'users' | 'rating' | 'volume' | 'transactions'>('users');
   const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'directory' | 'leaderboard' | 'tokens'>('directory');
+  const [dataSource, setDataSource] = useState<'all' | 'local' | 'virtuals'>('all');
+
+  const { data: agentsData, isLoading } = useAgents();
+  const { data: featuredData } = useFeaturedAgents();
+  const { data: discoverData, isLoading: isDiscovering } = useDiscoverAgents({
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    sort: sortBy === 'users' ? 'users' : sortBy === 'rating' ? 'volume' : 'name',
+    page,
+    pageSize: 50,
+    query: searchQuery || undefined,
+  });
+  const submitAgent = useSubmitAgent();
+  const { address } = useWallet();
+  const localAgents = agentsData?.agents || [];
+  const virtualsAgents = discoverData?.agents || [];
+  const featured = featuredData?.agents || [];
+
+  // Merge local + virtuals agents, dedup by name
+  const agents = useMemo(() => {
+    if (dataSource === 'local') return localAgents;
+    if (dataSource === 'virtuals') return virtualsAgents;
+
+    // Merge: local agents first, then virtuals (dedup by name)
+    const seen = new Set(localAgents.map((a: any) => a.name?.toLowerCase()));
+    const merged = [...localAgents];
+    for (const va of virtualsAgents) {
+      if (!seen.has(va.name?.toLowerCase())) {
+        merged.push(va);
+        seen.add(va.name?.toLowerCase());
+      }
+    }
+    return merged;
+  }, [localAgents, virtualsAgents, dataSource]);
 
   const filteredAgents = useMemo(() => {
     let result = agents.filter((a: any) => {
@@ -50,8 +77,8 @@ export default function AgentsPage() {
     });
 
     result.sort((a: any, b: any) => {
-      if (sortBy === 'users') return (b.users_count || 0) - (a.users_count || 0);
-      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'users') return (b.metrics?.users || b.users_count || 0) - (a.metrics?.users || a.users_count || 0);
+      if (sortBy === 'rating') return (b.metrics?.rating || b.rating || 0) - (a.metrics?.rating || a.rating || 0);
       return (a.name || '').localeCompare(b.name || '');
     });
 
@@ -138,6 +165,32 @@ export default function AgentsPage() {
         {/* Directory tab */}
         {activeTab === 'directory' && (
           <section>
+            {/* Source toggle */}
+            <div className="flex gap-1 mb-4">
+              {[
+                { id: 'all' as const, label: 'All Sources' },
+                { id: 'virtuals' as const, label: 'Virtuals Protocol' },
+                { id: 'local' as const, label: 'REKT Directory' },
+              ].map((src) => (
+                <button
+                  key={src.id}
+                  onClick={() => { setDataSource(src.id); setPage(1); }}
+                  className={`px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest transition-colors border ${
+                    dataSource === src.id
+                      ? 'border-white/30 text-white bg-white/5'
+                      : 'border-white/10 text-white/30 hover:text-white hover:border-white/20'
+                  }`}
+                >
+                  {src.label}
+                </button>
+              ))}
+              {discoverData?.source && (
+                <span className="ml-auto text-[10px] text-white/20 font-mono">
+                  {discoverData.total || 0} agents discovered
+                </span>
+              )}
+            </div>
+
             {/* Search + filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <div className="flex-1 relative">
@@ -148,7 +201,7 @@ export default function AgentsPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-                  placeholder="Search agents..."
+                  placeholder="Search 43,000+ agents..."
                   className="w-full bg-white/5 border border-white/10 text-white pl-10 pr-4 py-2.5 font-mono text-sm focus:outline-none focus:border-white/30 placeholder-white/20"
                 />
               </div>
@@ -181,7 +234,7 @@ export default function AgentsPage() {
             </div>
 
             {/* Agent grid */}
-            {isLoading ? (
+            {isLoading || isDiscovering ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px border border-white/10 bg-white/10">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="bg-black p-5 animate-pulse">
