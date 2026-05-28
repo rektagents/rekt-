@@ -142,7 +142,18 @@ function deduplicatePairs(pairs: DexPair[]): DexPair[] {
       best.set(key, pair);
     }
   }
-  return Array.from(best.values());
+
+  // Second pass: dedup by chainId+symbol to catch same token with different addresses
+  const bySymbol = new Map<string, DexPair>();
+  for (const pair of best.values()) {
+    const symKey = `${pair.chainId}:${pair.baseToken.symbol.toLowerCase()}`;
+    const existing = bySymbol.get(symKey);
+    if (!existing || (pair.liquidity?.usd || 0) > (existing.liquidity?.usd || 0)) {
+      bySymbol.set(symKey, pair);
+    }
+  }
+
+  return Array.from(bySymbol.values());
 }
 
 // Convert DexScreener pair to our CoinMarket format

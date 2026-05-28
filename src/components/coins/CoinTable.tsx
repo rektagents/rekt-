@@ -41,8 +41,16 @@ export function CoinTable({ selectedChain }: CoinTableProps) {
     }
   };
 
-  const sortedCoins = coins
-    ? [...coins].sort((a, b) => {
+  // Dedup by chainId:symbol before sorting
+  const uniqueCoins = coins
+    ? coins.filter((coin, i, arr) => {
+        const key = `${coin.chainId}:${coin.symbol}`.toLowerCase();
+        return i === arr.findIndex((c) => `${c.chainId}:${c.symbol}`.toLowerCase() === key);
+      })
+    : [];
+
+  const sortedCoins = uniqueCoins
+    ? [...uniqueCoins].sort((a, b) => {
         const aVal = a[sortKey] ?? 0;
         const bVal = b[sortKey] ?? 0;
         return sortAsc ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
