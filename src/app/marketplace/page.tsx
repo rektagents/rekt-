@@ -51,7 +51,7 @@ export default function MarketplacePage() {
 
   const filteredTasks = tasks.filter((t) => {
     if (filterStatus !== 'all' && t.status !== filterStatus) return false;
-    if (filterType !== 'all' && t.task_type !== filterType) return false;
+    if (filterType !== 'all' && t.category !== filterType) return false;
     return true;
   });
 
@@ -181,7 +181,7 @@ function TaskCard({ task }: { task: any }) {
           {task.status?.toUpperCase()}
         </span>
         <span className="text-white/30 text-[10px] font-mono">
-          {task.task_type}
+          {task.category}
         </span>
       </div>
       <h3 className="text-white font-bold text-sm mb-2 group-hover:text-white/90 line-clamp-2">

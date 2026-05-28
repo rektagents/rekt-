@@ -141,7 +141,7 @@ export default function MarketplaceDetailPage() {
               {task.status?.toUpperCase()}
             </span>
             <span className="text-white/30 text-xs font-mono">
-              {task.task_type}
+              {task.category}
             </span>
           </div>
           <h1 className="text-3xl font-black tracking-tight mb-4">{task.title}</h1>

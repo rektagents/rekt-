@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     .limit(50);
 
   if (status) query = query.eq("status", status);
-  if (category) query = query.eq("task_type", category);
+  if (category) query = query.eq("category", category);
   if (poster) query = query.eq("poster_address", poster);
   if (worker) query = query.eq("worker_address", worker);
 
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     .insert({
       title,
       description,
-      task_type: task_type || "custom",
+      category: task_type || "custom",
       reward_amount: parseFloat(reward_amount),
       deadline: deadline || null,
       poster_address,
