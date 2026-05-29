@@ -36,7 +36,7 @@ const phases = [
   {
     num: '03',
     title: 'Builder Tools',
-    status: 'next',
+    status: 'done',
     date: 'May 2026',
     items: [
       { text: 'Agent health monitor (uptime tracking)', done: true },
@@ -66,8 +66,8 @@ const phases = [
     date: 'July 2026',
     items: [
       { text: 'Rate limiting + abuse protection', done: false },
-      { text: 'Contract deployment to Base mainnet', done: false },
-      { text: 'SEO + performance optimization', done: false },
+      { text: 'Contract deployment to Base mainnet', done: true },
+      { text: 'SEO + performance optimization', done: true },
       { text: 'Agent API for programmatic access', done: false },
       { text: 'Cross-chain agent support', done: false },
     ],
