@@ -3,19 +3,23 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi';
 
-const WALLET_ICONS: Record<string, string> = {
-  MetaMask: 'M',
-  'Coinbase Wallet': 'C',
-  WalletConnect: 'W',
-  Injected: '◈',
-};
+function getWalletIcon(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('metamask')) return 'M';
+  if (n.includes('coinbase')) return 'C';
+  if (n.includes('walletconnect')) return 'W';
+  if (n.includes('phantom')) return 'P';
+  if (n.includes('rabby')) return 'R';
+  if (n.includes('trust')) return 'T';
+  if (n.includes('rainbow')) return 'R';
+  return '◈';
+}
 
-const WALLET_LABELS: Record<string, string> = {
-  MetaMask: 'MetaMask',
-  'Coinbase Wallet': 'Coinbase',
-  WalletConnect: 'WalletConnect',
-  Injected: 'Browser Wallet',
-};
+function getWalletLabel(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('injected')) return 'Browser Wallet';
+  return name;
+}
 
 export function WalletConnect() {
   const [open, setOpen] = useState(false);
@@ -101,10 +105,10 @@ export function WalletConnect() {
               className="w-full flex items-center gap-3 px-4 py-3 text-white/60 hover:text-white hover:bg-white/[0.03] transition-colors disabled:opacity-30 border-b border-white/5 last:border-b-0"
             >
               <span className="w-6 h-6 border border-white/10 flex items-center justify-center text-xs font-mono text-white/40 bg-white/[0.03]">
-                {WALLET_ICONS[connector.name] || '◈'}
+                {getWalletIcon(connector.name)}
               </span>
               <span className="text-sm font-mono flex-1 text-left">
-                {WALLET_LABELS[connector.name] || connector.name}
+                {getWalletLabel(connector.name)}
               </span>
               <span className="text-[10px] text-white/20 font-mono">→</span>
             </button>
