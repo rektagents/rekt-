@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { clsx } from 'clsx';
+import { useEffect } from 'react';
 
 const phases = [
   {
@@ -101,6 +102,25 @@ const faqs = [
 ];
 
 export default function RoadmapPage() {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map(faq => ({
+        "@type": "Question",
+        "name": faq.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.a
+        }
+      }))
+    });
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
+
   return (
     <div>
       {/* Hero */}
