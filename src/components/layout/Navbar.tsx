@@ -33,7 +33,7 @@ export function Navbar() {
   const pathname = usePathname();
   const { currency, setCurrency } = useCurrency();
   const { openSearch } = useSearch();
-  const { address, isConnected, connectWallet, disconnect, connectors } = useWallet();
+  const { address, isConnected, connectWallet, disconnect, connectors, isConnectPending } = useWallet();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
 
@@ -124,16 +124,29 @@ export function Navbar() {
                 )}
               </div>
             ) : (
-              <button
-                onClick={() => {
-                  const injected = connectors.find((c: any) => c.id === 'injected');
-                  if (injected) connectWallet();
-                }}
-                className="flex items-center gap-2 px-3 py-1.5 text-white/40 border border-white/10 hover:text-white hover:border-white/30 transition-colors text-xs font-mono"
-              >
-                <span className="hidden sm:inline">Connect</span>
-                <span className="sm:hidden">W</span>
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setWalletOpen(!walletOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-white/40 border border-white/10 hover:text-white hover:border-white/30 transition-colors text-xs font-mono"
+                >
+                  <span className="hidden sm:inline">Connect</span>
+                  <span className="sm:hidden">W</span>
+                </button>
+                {walletOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-50 bg-black border border-white/20 min-w-[200px]">
+                    {connectors.map((connector: any) => (
+                      <button
+                        key={connector.uid}
+                        onClick={() => { connectWallet(connector); setWalletOpen(false); }}
+                        disabled={isConnectPending}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-xs font-mono text-white/50 hover:text-white hover:bg-white/[0.03] transition-colors border-b border-white/5 last:border-b-0 disabled:opacity-30"
+                      >
+                        <span className="text-white/30">{connector.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Search button */}

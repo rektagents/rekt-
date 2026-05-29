@@ -1,6 +1,7 @@
 'use client';
 
 import { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi';
+import type { Connector } from 'wagmi';
 
 export function useWallet() {
   const { address, isConnected, isConnecting, chain } = useAccount();
@@ -8,11 +9,9 @@ export function useWallet() {
   const { disconnect } = useDisconnect();
   const { data: balance } = useBalance({ address });
 
-  const connectWallet = () => {
-    const injected = connectors.find((c) => c.id === 'injected');
-    if (injected) {
-      connect({ connector: injected });
-    }
+  const connectWallet = (connector?: Connector) => {
+    const c = connector || connectors.find((c) => c.id === 'injected');
+    if (c) connect({ connector: c });
   };
 
   return {
