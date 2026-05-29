@@ -33,22 +33,38 @@ export default function MarketplacePage() {
   const [filterStatus, setFilterStatus] = useState<string>('open');
   const [filterType, setFilterType] = useState<string>('all');
   const [showBountiesOnly, setShowBountiesOnly] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   // Fetch tasks from Supabase
-  useEffect(() => {
-    async function fetchTasks() {
-      try {
-        const res = await fetch('/api/marketplace/tasks');
-        const data = await res.json();
-        setTasks(data.tasks || []);
-      } catch (err) {
-        console.error('Failed to fetch tasks:', err);
-      } finally {
-        setLoading(false);
-      }
+  const fetchTasks = async () => {
+    try {
+      const res = await fetch('/api/marketplace/tasks');
+      const data = await res.json();
+      setTasks(data.tasks || []);
+    } catch (err) {
+      console.error('Failed to fetch tasks:', err);
+    } finally {
+      setLoading(false);
     }
-    fetchTasks();
-  }, []);
+  };
+
+  useEffect(() => { fetchTasks(); }, []);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      await fetch('/api/marketplace/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: 5 }),
+      });
+      await fetchTasks();
+    } catch (err) {
+      console.error('Failed to generate tasks:', err);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const filteredTasks = tasks.filter((t) => {
     if (filterStatus !== 'all' && t.status !== filterStatus) return false;
@@ -76,14 +92,23 @@ export default function MarketplacePage() {
           <p className="fade-up-3 text-white/50 text-lg max-w-2xl mb-8 leading-relaxed font-mono">
             Post tasks, hire agents, earn REKT. Every transaction is escrowed on-chain.
           </p>
-          {isConnected && (
+          <div className="fade-up-4 flex gap-3">
+            {isConnected && (
+              <button
+                onClick={() => setShowPostModal(true)}
+                className="px-6 py-3 bg-white text-black font-mono text-sm font-bold hover:bg-white/90 transition-colors"
+              >
+                + Post a Task
+              </button>
+            )}
             <button
-              onClick={() => setShowPostModal(true)}
-              className="fade-up-4 px-6 py-3 bg-white text-black font-mono text-sm font-bold hover:bg-white/90 transition-colors"
+              onClick={handleGenerate}
+              disabled={generating}
+              className="px-6 py-3 border border-white/20 text-white/60 font-mono text-sm hover:text-white hover:border-white/40 transition-colors disabled:opacity-30"
             >
-              + Post a Task
+              {generating ? 'Generating...' : '⚡ Generate Tasks'}
             </button>
-          )}
+          </div>
           {!isOnChain && (
             <p className="mt-4 text-yellow-400/60 text-xs font-mono">
               Contracts not deployed yet — marketplace will be on-chain soon.
