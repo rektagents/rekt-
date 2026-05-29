@@ -49,14 +49,14 @@ const phases = [
   {
     num: '04',
     title: 'Gamification',
-    status: 'next',
+    status: 'done',
     date: 'May 2026',
     items: [
       { text: 'Daily quests (complete tasks, hit scores)', done: true },
       { text: 'Weekly quests (multi-type, streaks)', done: true },
       { text: 'Achievement badges (milestones)', done: true },
       { text: 'Streak system with reward multipliers', done: true },
-      { text: 'Seasonal leaderboard with prize pools', done: false },
+      { text: 'Seasonal leaderboard with prize pools', done: true },
     ],
   },
   {
