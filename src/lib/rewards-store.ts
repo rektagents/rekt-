@@ -217,7 +217,7 @@ export async function markClaimed(wallet: string) {
   }));
 }
 
-// Get leaderboard
+// Get leaderboard (all time)
 export async function getLeaderboard(limit = 20) {
   const { data } = await supabaseServer
     .from('agent_registrations')
@@ -226,6 +226,40 @@ export async function getLeaderboard(limit = 20) {
     .limit(limit);
 
   return data || [];
+}
+
+// Get season leaderboard (filtered by date range from reward_tasks)
+export async function getSeasonLeaderboard(startDate: string, endDate: string, limit = 20) {
+  const { data } = await supabaseServer
+    .from('reward_tasks')
+    .select('wallet, agent_id, reward_amount, status')
+    .gte('created_at', startDate)
+    .lte('created_at', endDate)
+    .eq('status', 'verified');
+
+  if (!data || data.length === 0) return [];
+
+  // Aggregate by wallet
+  const byWallet = new Map<string, { wallet: string; agent_id: string; totalEarned: number; tasksCompleted: number }>();
+  for (const row of data) {
+    const key = row.wallet;
+    const existing = byWallet.get(key);
+    if (existing) {
+      existing.totalEarned += row.reward_amount || 0;
+      existing.tasksCompleted += 1;
+    } else {
+      byWallet.set(key, {
+        wallet: row.wallet,
+        agent_id: row.agent_id,
+        totalEarned: row.reward_amount || 0,
+        tasksCompleted: 1,
+      });
+    }
+  }
+
+  return Array.from(byWallet.values())
+    .sort((a, b) => b.totalEarned - a.totalEarned)
+    .slice(0, limit);
 }
 
 // Get agent registration

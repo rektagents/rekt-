@@ -4,24 +4,50 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
-const SEASONS = [
-  { id: 'current', label: 'Season 1', start: '2026-05-01', end: '2026-06-30', prize: '100,000 REKT' },
-  { id: 'all', label: 'All Time', start: null, end: null, prize: null },
-];
+interface Season {
+  id: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  prize_pool: number;
+  active: boolean;
+}
 
-async function fetchLeaderboard(season: string, limit = 50) {
-  const res = await fetch(`/api/rewards/leaderboard?limit=${limit}&season=${season}`);
+const ALL_TIME = { id: 'all', name: 'All Time', start_date: '', end_date: '', prize_pool: 0, active: true };
+
+async function fetchSeasons(): Promise<Season[]> {
+  const res = await fetch('/api/seasons');
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.seasons || [];
+}
+
+async function fetchLeaderboard(season: Season, limit = 50) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (season.id !== 'all' && season.start_date && season.end_date) {
+    params.set('start', season.start_date);
+    params.set('end', season.end_date);
+  }
+  const res = await fetch(`/api/rewards/leaderboard?${params}`);
   if (!res.ok) throw new Error('Failed to fetch');
   return res.json();
 }
 
 export default function LeaderboardPage() {
-  const [season, setSeason] = useState('current');
-  const currentSeason = SEASONS.find((s) => s.id === season);
+  const [seasonId, setSeasonId] = useState('all');
+
+  const { data: seasons = [] } = useQuery({
+    queryKey: ['seasons'],
+    queryFn: fetchSeasons,
+    staleTime: 60_000,
+  });
+
+  const allSeasons = [ALL_TIME, ...seasons];
+  const currentSeason = allSeasons.find((s) => s.id === seasonId) || ALL_TIME;
 
   const { data: leaderboard, isLoading } = useQuery({
-    queryKey: ['leaderboard', season],
-    queryFn: () => fetchLeaderboard(season),
+    queryKey: ['leaderboard', seasonId],
+    queryFn: () => fetchLeaderboard(currentSeason),
     staleTime: 30_000,
     refetchInterval: 30_000,
   });
@@ -50,33 +76,33 @@ export default function LeaderboardPage() {
         {/* Season selector */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex gap-1">
-            {SEASONS.map((s) => (
+            {allSeasons.map((s) => (
               <button
                 key={s.id}
-                onClick={() => setSeason(s.id)}
+                onClick={() => setSeasonId(s.id)}
                 className={`px-4 py-2 text-xs font-mono transition-colors border ${
-                  season === s.id
+                  seasonId === s.id
                     ? 'border-white/20 text-white bg-white/[0.03]'
                     : 'border-transparent text-white/30 hover:text-white'
                 }`}
               >
-                {s.label}
+                {s.name}
               </button>
             ))}
           </div>
-          {currentSeason?.prize && (
+          {currentSeason?.prize_pool > 0 && (
             <div className="hidden sm:flex items-center gap-2 border border-white/10 px-3 py-1.5">
               <span className="text-[10px] text-white/30 font-mono uppercase tracking-widest">prize pool</span>
-              <span className="text-sm font-bold text-white font-mono">{currentSeason.prize}</span>
+              <span className="text-sm font-bold text-white font-mono">{currentSeason.prize_pool.toLocaleString()} REKT</span>
             </div>
           )}
         </div>
 
         {/* Season info */}
-        {currentSeason?.start && (
+        {currentSeason?.start_date && (
           <div className="flex flex-wrap gap-4 mb-6 text-xs font-mono text-white/30">
-            <span>Start: {new Date(currentSeason.start).toLocaleDateString()}</span>
-            <span>End: {new Date(currentSeason.end!).toLocaleDateString()}</span>
+            <span>Start: {new Date(currentSeason.start_date).toLocaleDateString()}</span>
+            <span>End: {new Date(currentSeason.end_date).toLocaleDateString()}</span>
           </div>
         )}
 

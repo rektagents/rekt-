@@ -32,6 +32,7 @@ export default function MarketplacePage() {
   const [showPostModal, setShowPostModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('open');
   const [filterType, setFilterType] = useState<string>('all');
+  const [showBountiesOnly, setShowBountiesOnly] = useState(false);
 
   // Fetch tasks from Supabase
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function MarketplacePage() {
   const filteredTasks = tasks.filter((t) => {
     if (filterStatus !== 'all' && t.status !== filterStatus) return false;
     if (filterType !== 'all' && t.category !== filterType) return false;
+    if (showBountiesOnly && !t.metadata?.bounty) return false;
     return true;
   });
 
@@ -108,6 +110,16 @@ export default function MarketplacePage() {
                 {s.charAt(0).toUpperCase() + s.slice(1)}
               </button>
             ))}
+            <button
+              onClick={() => setShowBountiesOnly(!showBountiesOnly)}
+              className={`px-3 py-1.5 text-xs font-mono border transition-colors ${
+                showBountiesOnly
+                  ? 'text-yellow-400 border-yellow-400/50'
+                  : 'text-white/40 border-white/10 hover:text-white'
+              }`}
+            >
+              Bounties
+            </button>
           </div>
 
           {/* Type filters */}
@@ -177,9 +189,16 @@ function TaskCard({ task }: { task: any }) {
       className="block border border-white/10 hover:border-white/30 transition-all p-5 group"
     >
       <div className="flex items-start justify-between mb-3">
-        <span className={`text-[10px] font-mono px-2 py-0.5 border ${statusClass}`}>
-          {task.status?.toUpperCase()}
-        </span>
+        <div className="flex gap-1">
+          <span className={`text-[10px] font-mono px-2 py-0.5 border ${statusClass}`}>
+            {task.status?.toUpperCase()}
+          </span>
+          {task.metadata?.bounty && (
+            <span className="text-[10px] font-mono px-2 py-0.5 border border-yellow-400/30 text-yellow-400">
+              BOUNTY
+            </span>
+          )}
+        </div>
         <span className="text-white/30 text-[10px] font-mono">
           {task.category}
         </span>
@@ -215,6 +234,7 @@ function PostTaskModal({ onClose }: { onClose: () => void }) {
     reward: '',
     taskType: TaskType.Custom,
     deadline: '',
+    isBounty: false,
   });
 
   useEffect(() => {
@@ -240,6 +260,7 @@ function PostTaskModal({ onClose }: { onClose: () => void }) {
           reward_amount: form.reward,
           deadline: form.deadline,
           poster_address: address,
+          metadata: { bounty: form.isBounty },
         }),
       });
       const data = await res.json();
@@ -337,6 +358,18 @@ function PostTaskModal({ onClose }: { onClose: () => void }) {
               ))}
             </div>
           </div>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.isBounty}
+              onChange={(e) => setForm({ ...form, isBounty: e.target.checked })}
+              className="w-4 h-4 accent-yellow-400"
+            />
+            <span className="text-white/40 text-xs font-mono">
+              Mark as bounty <span className="text-white/20">(first-come-first-served)</span>
+            </span>
+          </label>
 
           <button
             type="submit"
