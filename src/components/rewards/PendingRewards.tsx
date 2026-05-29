@@ -6,6 +6,7 @@ import { usePendingRewardOnChain } from '@/hooks/useOnChainRewards';
 import { ClaimButton } from './ClaimButton';
 import { isOnChainEnabled } from '@/lib/contracts';
 import { formatEther } from 'viem';
+import { getNextDistributionDate, formatDistributionDate, daysUntilDistribution } from '@/lib/distribution';
 
 export function PendingRewards() {
   const { address } = useWallet();
@@ -26,6 +27,8 @@ export function PendingRewards() {
   const reg = data?.registration;
   const pending = data?.pending;
   const onChainAmount = onChainPending ? Number(formatEther(onChainPending as bigint)) : 0;
+  const { openDate, closeDate, isOpen } = getNextDistributionDate();
+  const daysLeft = daysUntilDistribution();
 
   if (!reg) return null;
 
@@ -44,6 +47,20 @@ export function PendingRewards() {
           </p>
         )}
       </div>
+
+      {/* Distribution schedule */}
+      <div className="border-b border-white/10 px-6 py-3">
+        {isOpen ? (
+          <p className="text-green-400 text-xs font-mono">
+            Claims open until {formatDistributionDate(closeDate)}
+          </p>
+        ) : (
+          <p className="text-white/40 text-xs font-mono">
+            Next distribution: {formatDistributionDate(openDate)} ({daysLeft} days)
+          </p>
+        )}
+      </div>
+
       <div className="grid grid-cols-3 gap-px bg-white/10">
         <div className="bg-black p-4 text-center">
           <p className="text-lg font-bold text-white font-mono tabular-nums">{reg.tasksCompleted ?? 0}</p>

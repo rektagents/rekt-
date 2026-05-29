@@ -7,6 +7,7 @@ import { useClaimOnChain, usePendingRewardOnChain } from '@/hooks/useOnChainRewa
 import { TransactionStatus } from './TransactionStatus';
 import { isOnChainEnabled } from '@/lib/contracts';
 import { formatEther } from 'viem';
+import { isClaimWindowOpen, getNextDistributionDate, formatDistributionDate, daysUntilDistribution } from '@/lib/distribution';
 
 export function ClaimButton() {
   const { address } = useWallet();
@@ -19,6 +20,9 @@ export function ClaimButton() {
   const hasPending = (data?.pending?.total || 0) > 0;
   const onChainAmount = onChainPending ? Number(formatEther(onChainPending as bigint)) : 0;
   const hasOnChainPending = onChainAmount > 0;
+  const claimOpen = isClaimWindowOpen();
+  const { openDate } = getNextDistributionDate();
+  const daysLeft = daysUntilDistribution();
 
   const handleClaim = async () => {
     if (!address) return;
@@ -40,9 +44,31 @@ export function ClaimButton() {
     claimOnChain.claim();
   };
 
+  // Claim window closed — show countdown
+  if (!claimOpen) {
+    return (
+      <div className="text-center py-3">
+        <p className="text-white/40 text-xs font-mono mb-1">
+          Claims open {formatDistributionDate(openDate)}
+        </p>
+        <p className="text-white/20 text-[10px] font-mono">
+          {daysLeft} days remaining
+        </p>
+        {hasPending && (
+          <p className="text-white/30 text-[10px] font-mono mt-2">
+            {data?.pending?.total?.toFixed(2) || '0'} REKT accumulating
+          </p>
+        )}
+      </div>
+    );
+  }
+
   if (!isOnChainEnabled) {
     return (
       <div>
+        <p className="text-green-400/60 text-[10px] font-mono text-center mb-2">
+          Distribution window open
+        </p>
         <button
           onClick={handleClaim}
           disabled={!hasPending || claimOffChain.isPending}
@@ -64,6 +90,10 @@ export function ClaimButton() {
 
   return (
     <div className="space-y-3">
+      <p className="text-green-400/60 text-[10px] font-mono text-center">
+        Distribution window open
+      </p>
+
       {hasOnChainPending && (
         <div className="border border-white/10 p-4">
           <p className="text-[10px] text-white/30 font-mono uppercase tracking-widest mb-1">on-chain pending</p>

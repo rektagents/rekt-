@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { markClaimed, getPendingRewards } from '@/lib/rewards-store';
+import { isClaimWindowOpen, getNextDistributionDate, formatDistributionDate } from '@/lib/distribution';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +10,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'wallet is required' },
         { status: 400 }
+      );
+    }
+
+    // Check if claim window is open (28th of month to 3rd of next month)
+    if (!isClaimWindowOpen()) {
+      const { openDate } = getNextDistributionDate();
+      return NextResponse.json(
+        {
+          error: `Claims open on ${formatDistributionDate(openDate)}. Rewards accumulate monthly to protect token price.`,
+          nextDistribution: openDate.toISOString(),
+        },
+        { status: 403 }
       );
     }
 
